@@ -4,7 +4,6 @@
  */
 window.SUPABASE_CONFIG = {
     url: 'https://bmnsjppcynvdxagyevnp.supabase.co',
-    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbnNqcHBjeW52ZHhhZ3lldm5wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyMDcwNzYsImV4cCI6MjEwMjc4MzA3Nn0.iAKBAVCiBlZ3i7O5awW6iUPvv-JzEE3hIl2nkQna63I',
-    // 管理口令（HR 后台鉴权用，与 campus_app_config 表一致）
-    adminPasscode: 'Honess2006'
+    anonKey: 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImJtbnNqcHBjeW52ZHhhZ3lldm5wIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODcyMDcwNzYsImV4cCI6MjEwMjc4MzA3Nn0.iAKBAVCiBlZ3i7O5awW6iUPvv-JzEE3hIl2nkQna63I'
+    // 管理口令不再存放于前端（安全加固）：HR 登录成功后由 campus_hr_login 下发，存于会话中
 };

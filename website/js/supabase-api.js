@@ -14,7 +14,6 @@
     var CONFIG = window.SUPABASE_CONFIG || {};
     var SUPA_URL = CONFIG.url || '';
     var SUPA_KEY = CONFIG.anonKey || '';
-    var PASSCODE = CONFIG.adminPasscode || 'Honess2006';
 
     // 未配置则不拦截，使用本地服务器
     if (!SUPA_URL || SUPA_URL === 'YOUR_SUPABASE_URL' || !SUPA_KEY) {
@@ -83,12 +82,12 @@
         return SUPA_URL + '/storage/v1/object/public/resumes/' + path;
     }
 
-    // 读取当前 HR 会话口令（默认用配置值）
+    // 读取当前 HR 会话口令（登录成功后由 campus_hr_login 下发，未登录则为空）
     function getPasscode() {
         try {
             var s = JSON.parse(localStorage.getItem('campus_admin_session') || '{}');
-            return s.passcode || PASSCODE;
-        } catch (e) { return PASSCODE; }
+            return s.passcode || '';
+        } catch (e) { return ''; }
     }
 
     // 读取当前登录用户（评论/评估等协作操作用）
@@ -112,6 +111,11 @@
         };
     }
     function makeErrorResponse(status, msg) {
+        // 口令失效（如已轮换）→ 清理会话，提示重新登录
+        if (status === 401 && msg === '口令错误') {
+            try { localStorage.removeItem('campus_admin_session'); } catch (e) {}
+            msg = '会话已过期，请退出后重新登录';
+        }
         return {
             ok: false, status: status,
             json: function () { return Promise.resolve({ error: msg }); },
@@ -297,11 +301,11 @@
             if (!loginRes || loginRes.ok !== true) {
                 return makeErrorResponse(401, (loginRes && loginRes.error) || '登录失败');
             }
-            // 存会话到 localStorage（用户信息 + 口令）
+            // 存会话到 localStorage（用户信息 + 登录后下发的口令）
             try {
                 localStorage.setItem('campus_admin_session', JSON.stringify({
                     user: loginRes.user,
-                    passcode: PASSCODE
+                    passcode: loginRes.passcode || ''
                 }));
             } catch (e) {}
             return makeResponse({ user: loginRes.user });
