@@ -1,0 +1,5 @@
+User-agent: *
+Disallow: /admin.html
+Allow: /
+
+Sitemap: https://xichuanovo.github.io/honess-campus-ai/sitemap.xml
