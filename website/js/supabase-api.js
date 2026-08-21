@@ -137,7 +137,7 @@
     async function handleApiRequest(url, opts) {
         var u = String(url).replace(/^https?:\/\/[^/]+/, '');
         // 归一化：允许相对路径 api/xxx 与绝对路径 /api/xxx 都命中
-        u = u.replace(/^\/+/, '/');
+        u = '/' + u.replace(/^\/+/, '');
         var method = (opts && opts.method) || 'GET';
 
         // ---------- 健康检查 ----------
