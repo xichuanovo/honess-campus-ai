@@ -476,6 +476,16 @@
         return 'general';
     }
 
+    // 随机抽题（Fisher-Yates 洗牌）：防止候选人之间互相透题
+    function pickRandom(arr, n) {
+        var a = (arr || []).slice();
+        for (var i = a.length - 1; i > 0; i--) {
+            var j = Math.floor(Math.random() * (i + 1));
+            var t = a[i]; a[i] = a[j]; a[j] = t;
+        }
+        return a.slice(0, n);
+    }
+
     function buildQuestions() {
         var type = resolveJobType(state.session.applied_job);
         var pos = state.session.applied_job || '本岗位';
@@ -484,15 +494,13 @@
         qs.push({ dim: '基础信息', text: '方便介绍一下你的籍贯和成长环境吗？家人对你到外地发展或长期出差怎么看？' });
         qs.push({ dim: '基础信息', text: '这个岗位后续可能需要出差或短期驻场，你能接受吗？你期望的工作地点是哪里？' });
         qs.push({ dim: '实习经历', text: '在校期间有参加过实习、实训或项目吗？简单讲讲你做了什么、学到什么。' });
-        // 专业知识 2 题
+        // 专业知识 2 题（从 岗位题池+通识题池 随机抽取）
         var proPool = (WATER_KB[type] || []).concat(WATER_KB.common);
-        var picked = [];
-        for (var i = 0; i < proPool.length && picked.length < 2; i++) {
-            if (picked.indexOf(proPool[i]) === -1) picked.push(proPool[i]);
-        }
-        picked.forEach(function (it) { qs.push({ dim: '专业知识', text: it.q, ref: it.ref }); });
-        // 岗位认知 + 动机
+        pickRandom(proPool, 2).forEach(function (it) { qs.push({ dim: '专业知识', text: it.q, ref: it.ref }); });
+        // 行为素质 2 题（从岗位行为题库随机抽取）
         var base = Q_BANK[type] || Q_BANK.general;
+        pickRandom(base, 2).forEach(function (b) { qs.push({ dim: b[0], text: b[1] }); });
+        // 岗位认知 + 动机
         qs.push({ dim: '岗位认知', text: '你对我们「' + pos + '」这个岗位的工作内容是怎么理解的？结合你的专业，你觉得自己在哪方面最能胜任？' });
         qs.push({ dim: '求职动机', text: '为什么会选择进入环保这个行业？对我们泓济环保有什么了解吗？未来两三年你的职业规划是怎样的？' });
         // 反馈题

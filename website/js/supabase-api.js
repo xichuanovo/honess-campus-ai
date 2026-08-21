@@ -677,8 +677,13 @@
         var u = String(url);
         if (u.match(/^\/?api\//) || u.match(/^https?:\/\/[^/]+\/api\//)) {
             return handleApiRequest(u, opts).catch(function (err) {
-                console.error('[supabase-api] 请求失败:', err.message);
-                return makeErrorResponse(500, err.message);
+                var raw = (err && err.message) ? err.message : String(err);
+                var msg = raw;
+                if (/failed to fetch|networkerror|net::err|fetch|timeout|timed out|abort|unreachable|offline/i.test(raw)) {
+                    msg = '网络连接失败，请检查网络后重试';
+                }
+                console.error('[supabase-api] 请求失败:', raw);
+                return makeErrorResponse(503, msg);
             });
         }
         return originalFetch.apply(this, arguments);
