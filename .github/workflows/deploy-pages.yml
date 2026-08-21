@@ -32,6 +32,9 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v4
+        with:
+          # 自动启用仓库 Pages（私有仓库首次部署必需）
+          enablement: true
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
