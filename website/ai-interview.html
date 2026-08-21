@@ -1,0 +1,1094 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 初试 | 泓济环保校招</title>
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        /* ===== AI 初试页：泓济水主题 ===== */
+        .iv-topbar {
+            background: linear-gradient(135deg, #005b88 0%, #0077b3 35%, #009fe3 70%, #4ec5f1 100%);
+            color: white; padding: 20px 24px; display: flex; align-items: center; justify-content: space-between; gap: 12px;
+        }
+        .iv-topbar .t-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 15px; }
+        .iv-topbar .t-brand img { height: 30px; }
+        .iv-topbar .t-back { color: rgba(255,255,255,0.9); font-size: 13px; text-decoration: none; padding: 6px 12px; border: 1px solid rgba(255,255,255,0.4); border-radius: 8px; }
+        .iv-topbar .t-back:hover { background: rgba(255,255,255,0.15); }
+
+        .iv-wrap { max-width: 860px; margin: 0 auto; padding: 28px 20px 60px; }
+
+        /* 通用面板 */
+        .panel { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 28px; margin-bottom: 20px; }
+
+        /* 入场校验 */
+        .gate-hero { text-align: center; padding: 20px 0 8px; }
+        .gate-hero .g-icon { font-size: 60px; margin-bottom: 12px; animation: drop-float 3s ease-in-out infinite; }
+        @keyframes drop-float { 0%,100%{transform:translateY(0)} 50%{transform:translateY(-8px)} }
+        .gate-hero h1 { font-size: 24px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+        .gate-hero p { font-size: 14px; color: var(--text-light); line-height: 1.8; }
+        .gate-form { max-width: 460px; margin: 22px auto 0; }
+        .gate-btn { width: 100%; padding: 13px; font-size: 15px; }
+
+        /* 就绪面板 */
+        .ready-head { display: flex; align-items: center; gap: 18px; flex-wrap: wrap; }
+        .ready-head .rh-avatar {
+            width: 74px; height: 74px; border-radius: 50%; overflow: hidden; flex-shrink: 0;
+            border: 3px solid #b0d8e8; box-shadow: 0 6px 20px rgba(0,159,227,0.25);
+        }
+        .ready-head .rh-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .ready-head .rh-info { flex: 1; min-width: 200px; }
+        .ready-head .rh-name { font-size: 20px; font-weight: 800; color: var(--text); }
+        .ready-head .rh-job { font-size: 13px; color: var(--text-light); margin-top: 3px; }
+        .ready-head .rh-code { font-size: 13px; color: #0077b3; margin-top: 3px; font-weight: 600; }
+
+        .punct-banner {
+            display: flex; align-items: center; gap: 12px; border-radius: 12px; padding: 12px 16px; margin: 16px 0 4px;
+            font-size: 13.5px; background: var(--secondary); border: 1px solid #b0d8e8; color: var(--text);
+        }
+        .punct-banner.good { background: #eef9ee; border-color: #bfe3b4; }
+        .punct-banner.warn { background: #fff8e6; border-color: #f2d28a; }
+        .punct-banner.bad { background: #ffefef; border-color: #f2b8b8; }
+        .punct-banner .p-icon { font-size: 22px; }
+        .punct-banner b { color: #0077b3; }
+
+        /* 面试区 */
+        .interview-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; margin-bottom: 14px; }
+        .interview-head .prog { font-size: 13px; color: var(--text-light); font-weight: 600; }
+        .interview-head .prog b { color: #0077b3; font-size: 16px; }
+        .ai-stage { display: flex; gap: 22px; align-items: flex-start; flex-wrap: wrap; }
+        .ai-avatar-box {
+            width: 150px; flex-shrink: 0; text-align: center;
+        }
+        .ai-avatar {
+            width: 150px; height: 150px; border-radius: 50%; overflow: hidden; margin: 0 auto;
+            border: 3px solid #b0d8e8; position: relative;
+            box-shadow: 0 10px 30px rgba(0,159,227,0.22);
+        }
+        .ai-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .ai-avatar .ring {
+            position: absolute; inset: -8px; border-radius: 50%; border: 3px solid transparent;
+            border-top-color: #009fe3; opacity: 0; transition: opacity 0.3s;
+        }
+        .ai-avatar.speaking .ring { opacity: 1; animation: spin 1.2s linear infinite; }
+        .ai-avatar.speaking img { animation: avatarTalk 0.5s ease-in-out infinite alternate; }
+        @keyframes avatarTalk { from { transform: scale(1); } to { transform: scale(1.025); } }
+        .ai-name { font-size: 13px; font-weight: 700; color: #0077b3; margin-top: 10px; }
+        .ai-status { font-size: 11.5px; color: var(--text-light); margin-top: 2px; min-height: 16px; }
+
+        .ai-dialog { flex: 1; min-width: 280px; }
+        .q-dim {
+            display: inline-block; background: linear-gradient(135deg, #009fe3, #0077b3); color: white;
+            font-size: 11.5px; font-weight: 700; border-radius: 10px; padding: 3px 12px; margin-bottom: 8px;
+        }
+        .q-text {
+            font-size: 16px; font-weight: 600; color: var(--text); line-height: 1.9; margin-bottom: 10px;
+            background: var(--secondary); border-radius: 14px; padding: 16px 18px; border-left: 4px solid #009fe3;
+        }
+        .q-ref-toggle { font-size: 12px; color: var(--primary); cursor: pointer; background: none; border: none; padding: 0; font-family: inherit; }
+        .q-ref-body { font-size: 13px; color: var(--text-light); background: #f8fbfd; border-radius: 10px; padding: 12px 14px; margin-top: 8px; line-height: 1.8; border: 1px dashed #b0d8e8; }
+
+        .audio-row { display: flex; align-items: center; gap: 10px; margin: 12px 0; flex-wrap: wrap; }
+        .audio-row .play-btn {
+            width: 40px; height: 40px; border-radius: 50%; border: none; cursor: pointer;
+            background: linear-gradient(135deg, #009fe3, #0077b3); color: white; font-size: 16px;
+            display: flex; align-items: center; justify-content: center; transition: all 0.2s;
+        }
+        .audio-row .play-btn:hover { transform: scale(1.08); }
+        .audio-row .tts-seek { flex: 1; min-width: 120px; accent-color: #009fe3; }
+        .audio-row .tts-time { font-size: 11.5px; color: var(--text-light); white-space: nowrap; }
+        .engine-hint { font-size: 11.5px; color: var(--text-light); }
+
+        /* 回答区 */
+        .answer-box { margin-top: 16px; border: 2px solid var(--border); border-radius: 14px; padding: 16px; background: var(--white); }
+        .answer-box .ab-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; margin-bottom: 8px; flex-wrap: wrap; }
+        .answer-box .ab-title { font-size: 13px; font-weight: 700; color: var(--text); }
+        .answer-box .rec-state {
+            font-size: 11.5px; color: var(--text-light); background: var(--secondary); border-radius: 8px; padding: 3px 10px;
+        }
+        .answer-box .rec-state.on { background: #ffebee; color: #c62828; }
+        .answer-box textarea {
+            width: 100%; min-height: 90px; border: none; outline: none; resize: vertical; font-size: 14.5px;
+            font-family: inherit; color: var(--text); line-height: 1.8; background: transparent;
+        }
+        .answer-box textarea::placeholder { color: #b2bec3; }
+        .ab-actions { display: flex; gap: 8px; justify-content: flex-end; flex-wrap: wrap; }
+
+        .q-nav { display: flex; justify-content: space-between; gap: 12px; margin-top: 18px; flex-wrap: wrap; }
+
+        /* 反馈题 */
+        .fb-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin: 14px 0; }
+        .fb-item { border: 2px solid var(--border); border-radius: 12px; padding: 14px; text-align: center; }
+        .fb-item .f-label { font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 8px; }
+        .fb-item .stars { font-size: 22px; letter-spacing: 4px; }
+        .fb-item .stars button { background: none; border: none; font-size: 22px; color: #dfe6e9; cursor: pointer; transition: transform 0.15s; }
+        .fb-item .stars button.on { color: #f6b93b; }
+        .fb-item .stars button:hover { transform: scale(1.2); }
+
+        /* 完成面板 */
+        .done-hero { text-align: center; padding: 16px 0 8px; }
+        .done-hero .d-icon { font-size: 60px; margin-bottom: 10px; }
+        .done-hero h1 { font-size: 24px; font-weight: 800; color: var(--text); margin-bottom: 8px; }
+        .done-hero p { font-size: 14px; color: var(--text-light); line-height: 1.8; }
+        .done-cards { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; margin: 20px 0; }
+        .done-card { background: var(--secondary); border-radius: 14px; padding: 18px 12px; text-align: center; border: 1px solid #d0e8f0; }
+        .done-card .dc-val { font-size: 26px; font-weight: 800; color: #0077b3; }
+        .done-card .dc-label { font-size: 12px; color: var(--text-light); margin-top: 4px; }
+        .done-note { font-size: 13px; color: var(--text-light); text-align: center; line-height: 1.9; margin-bottom: 18px; }
+
+        .hidden { display: none !important; }
+        @media (max-width: 640px) {
+            .iv-wrap { padding: 16px 12px 48px; }
+            .ai-stage { flex-direction: column; align-items: center; }
+            .ai-dialog { width: 100%; }
+            .fb-grid { grid-template-columns: 1fr; }
+            .done-cards { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <div class="iv-topbar">
+        <div class="t-brand">
+            <img src="images/honess-logo.png" alt="HONESS">
+            <span>泓济环保 · AI 初试</span>
+        </div>
+        <a class="t-back" href="schedule.html">← 返回预约</a>
+    </div>
+
+    <div class="iv-wrap">
+        <!-- ============ 入场校验 ============ -->
+        <div id="viewGate" class="panel">
+            <div class="gate-hero">
+                <div class="g-icon">🤖</div>
+                <h1>AI 数字人初试</h1>
+                <p>请使用预约时填写的<b>手机号</b>和系统生成的<b>6 位预约码</b>进入面试。<br>进入后将自动记录你的准时情况，并纳入量化评估。</p>
+            </div>
+            <div class="gate-form">
+                <div class="form-group">
+                    <label>预约码 <span class="required">*</span></label>
+                    <input type="text" id="gateCode" placeholder="6 位预约码，如 ABC123" maxlength="6" style="text-transform:uppercase">
+                </div>
+                <div class="form-group">
+                    <label>手机号 <span class="required">*</span></label>
+                    <input type="tel" id="gatePhone" placeholder="预约时填写的手机号" maxlength="11">
+                </div>
+                <button class="btn btn-primary gate-btn" onclick="doVerify()">验证并进入面试 →</button>
+                <div class="phone-note" style="font-size:12px;color:var(--text-light);margin-top:12px;text-align:center">
+                    💡 忘记预约码？可到 <a href="schedule.html" style="color:var(--primary)">「我的预约」</a> 查询
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ 就绪（开始前） ============ -->
+        <div id="viewReady" class="panel hidden">
+            <div class="ready-head">
+                <div class="rh-avatar"><img src="images/ai-avatar.png" alt="AI 面试官"></div>
+                <div class="rh-info">
+                    <div class="rh-name" id="readyName">候选人</div>
+                    <div class="rh-job" id="readyJob">—</div>
+                    <div class="rh-code" id="readyCode">预约码：—</div>
+                </div>
+                <div style="text-align:right">
+                    <div style="font-size:12px;color:var(--text-light)">面试时间</div>
+                    <div style="font-size:14px;font-weight:700;color:var(--text)" id="readyTime">—</div>
+                </div>
+            </div>
+
+            <div id="punctBanner" class="punct-banner">
+                <div class="p-icon">⏱️</div>
+                <div>正在检测你的准时情况…</div>
+            </div>
+
+            <div style="margin-top:18px">
+                <h4 style="font-size:15px;font-weight:700;margin-bottom:10px">📋 面试须知</h4>
+                <ul style="font-size:13.5px;color:var(--text-light);line-height:2.1;padding-left:18px">
+                    <li>全程约 8-10 分钟，请在一个安静、网络稳定的环境进行</li>
+                    <li>建议佩戴耳机，语音清晰度会影响评分</li>
+                    <li>每道题请尽量完整作答（不少于 2-3 句），可使用语音或文字输入</li>
+                    <li>点击「开始面试」后，AI 面试官将逐题提问，答完点击「下一题」</li>
+                    <li>面试结束后将自动生成量化评估，提交后不可修改</li>
+                </ul>
+            </div>
+
+            <div style="margin-top:22px;text-align:center">
+                <button class="btn btn-primary" style="padding:14px 46px;font-size:16px" onclick="startInterview()">🎙 开始面试</button>
+            </div>
+        </div>
+
+        <!-- ============ 面试中 ============ -->
+        <div id="viewInterview" class="hidden">
+            <div class="interview-head">
+                <div style="font-size:15px;font-weight:700;color:var(--text)">🤖 AI 面试进行中</div>
+                <div class="prog">第 <b id="qCur">1</b> / <span id="qTotal">9</span> 题</div>
+            </div>
+            <div class="panel">
+                <div class="ai-stage">
+                    <div class="ai-avatar-box">
+                        <div class="ai-avatar" id="aiAvatar">
+                            <img src="images/ai-avatar.png" alt="AI 面试官">
+                            <div class="ring"></div>
+                        </div>
+                        <div class="ai-name">泓宝 · AI 面试官</div>
+                        <div class="ai-status" id="aiStatus">准备中…</div>
+                    </div>
+                    <div class="ai-dialog">
+                        <span class="q-dim" id="qDim">开场</span>
+                        <div class="q-text" id="qText">…</div>
+                        <button class="q-ref-toggle hidden" id="qRefBtn" onclick="toggleRef()">📌 本题知识参考 ▾</button>
+                        <div class="q-ref-body hidden" id="qRefBody"></div>
+
+                        <div class="audio-row">
+                            <button class="play-btn" id="playBtn" onclick="speakCurrent()">▶</button>
+                            <input type="range" class="tts-seek" id="ttsSeek" min="0" max="100" value="0">
+                            <span class="tts-time" id="ttsTime">0:00</span>
+                        </div>
+                        <div class="engine-hint" id="engineHint">语音引擎初始化…</div>
+                    </div>
+                </div>
+
+                <!-- 回答区 -->
+                <div class="answer-box">
+                    <div class="ab-head">
+                        <div class="ab-title">✍️ 你的回答</div>
+                        <span class="rec-state" id="recState">🎙 语音输入可用</span>
+                    </div>
+                    <textarea id="answerText" placeholder="点击下方「开始回答」使用语音，或直接在此输入你的回答…"></textarea>
+                    <div class="ab-actions">
+                        <button class="btn btn-secondary btn-sm" id="recBtn" onclick="toggleRecord()">🎙 开始回答</button>
+                        <button class="btn btn-outline btn-sm" onclick="clearAnswer()">清空</button>
+                        <button class="btn btn-primary btn-sm" id="nextBtn" onclick="nextQ()">下一题 →</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============ 反馈题（最后一题） ============ -->
+        <div id="viewFeedback" class="panel hidden">
+            <span class="q-dim">AI 面试反馈</span>
+            <div class="q-text">最后，请对本次 AI 面试做一个评价（整体满意度 / 语音清晰度 / 题目合理性），并写一句话建议（选填）。你的反馈会帮助我们把初试做得更好。</div>
+            <div class="fb-grid">
+                <div class="fb-item">
+                    <div class="f-label">整体满意度</div>
+                    <div class="stars" id="stars-overall">
+                        <button data-v="1" onclick="setFb('overall',1)">★</button><button data-v="2" onclick="setFb('overall',2)">★</button><button data-v="3" onclick="setFb('overall',3)">★</button><button data-v="4" onclick="setFb('overall',4)">★</button><button data-v="5" onclick="setFb('overall',5)">★</button>
+                    </div>
+                </div>
+                <div class="fb-item">
+                    <div class="f-label">语音清晰度</div>
+                    <div class="stars" id="stars-voice">
+                        <button data-v="1" onclick="setFb('voice',1)">★</button><button data-v="2" onclick="setFb('voice',2)">★</button><button data-v="3" onclick="setFb('voice',3)">★</button><button data-v="4" onclick="setFb('voice',4)">★</button><button data-v="5" onclick="setFb('voice',5)">★</button>
+                    </div>
+                </div>
+                <div class="fb-item">
+                    <div class="f-label">题目合理性</div>
+                    <div class="stars" id="stars-questions">
+                        <button data-v="1" onclick="setFb('questions',1)">★</button><button data-v="2" onclick="setFb('questions',2)">★</button><button data-v="3" onclick="setFb('questions',3)">★</button><button data-v="4" onclick="setFb('questions',4)">★</button><button data-v="5" onclick="setFb('questions',5)">★</button>
+                    </div>
+                </div>
+            </div>
+            <div class="form-group">
+                <label>一句话建议（选填）</label>
+                <textarea id="fbAdvice" placeholder="例如：希望语速再慢一些 / 题目很贴合岗位…" style="min-height:70px"></textarea>
+            </div>
+            <div style="text-align:center;margin-top:10px">
+                <button class="btn btn-primary" id="fbSubmitBtn" style="padding:13px 44px;font-size:15px" onclick="submitInterview()">✅ 提交面试结果</button>
+                <div style="font-size:12px;color:var(--text-light);margin-top:10px">提交后系统将自动生成量化评估并同步 HR 端</div>
+            </div>
+        </div>
+
+        <!-- ============ 完成 ============ -->
+        <div id="viewDone" class="panel hidden">
+            <div class="done-hero">
+                <div class="d-icon">🎉</div>
+                <h1>AI 初试完成！</h1>
+                <p>你的面试记录与量化评估已提交，HR 团队会尽快与你联系。</p>
+            </div>
+            <div class="done-cards">
+                <div class="done-card">
+                    <div class="dc-val" id="donePunct">—</div>
+                    <div class="dc-label">准时评估</div>
+                </div>
+                <div class="done-card">
+                    <div class="dc-val" id="doneOverall">—</div>
+                    <div class="dc-label">AI 初试综合分（0-100）</div>
+                </div>
+                <div class="done-card">
+                    <div class="dc-val" id="doneCode">—</div>
+                    <div class="dc-label">预约码</div>
+                </div>
+            </div>
+            <div class="done-note" id="doneNote"></div>
+            <div style="text-align:center">
+                <a class="btn btn-primary" href="jobs.html" style="margin-right:10px">查看其他岗位 →</a>
+                <a class="btn btn-secondary" href="index.html">返回首页</a>
+            </div>
+        </div>
+    </div>
+
+    <audio id="ttsAudio" preload="auto"></audio>
+    <div class="toast" id="toast"></div>
+
+    <!-- Supabase 拦截层优先加载 -->
+    <script src="js/supabase-config.js"></script>
+    <script src="js/supabase-api.js"></script>
+
+    <script>
+    'use strict';
+    /* ================= 基础工具 ================= */
+    function toast(msg) {
+        var t = document.getElementById('toast');
+        t.textContent = msg; t.classList.add('show');
+        clearTimeout(t._h); t._h = setTimeout(function () { t.classList.remove('show'); }, 2600);
+    }
+    function esc(s) {
+        return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    function qs(name) {
+        var m = location.search.match(new RegExp('[?&]' + name + '=([^&]+)'));
+        try { return m ? decodeURIComponent(m[1]) : ''; } catch (e) { return m ? m[1] : ''; }
+    }
+    function parseCnTime(iso) {
+        if (!iso) return '';
+        var d = new Date(iso);
+        if (isNaN(d)) return iso;
+        var p = function (n) { return String(n).padStart(2, '0'); };
+        return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+    }
+    var PUNCT_LABEL = {
+        on_time: '准时参加',
+        late_short: '迟到 15-30 分钟',
+        late_long: '迟到超过 30 分钟',
+        absent: '缺席',
+        pending: '待面试'
+    };
+
+    /* ================= 面试状态 ================= */
+    var state = {
+        code: (qs('code') || '').toUpperCase(),
+        phone: qs('phone'),
+        session: null,
+        punct: null,
+        questions: [],
+        qIdx: 0,
+        qNote: [],
+        fbScores: { overall: 0, voice: 0, questions: 0 },
+        speaking: false
+    };
+
+    var DIMS = [
+        { key: 'match', name: '岗位匹配度', desc: '硬件条件对口' },
+        { key: 'express', name: '表达与逻辑', desc: '表达清晰有层次' },
+        { key: 'learn', name: '专业与学习', desc: '基础扎实愿学习' },
+        { key: 'collab', name: '协作与沟通', desc: '冲突处理与协作' },
+        { key: 'motive', name: '动机与稳定', desc: '意向清晰可长期' },
+        { key: 'value', name: '价值观素养', desc: '底线清晰有责任心' }
+    ];
+
+    /* ================= 题库（与数字人面试同源） ================= */
+    var WATER_KB = {
+        common: [
+            { q: '污水处理的一般流程是怎样的？', ref: '通常为「预处理（格栅/沉砂/调节池）→ 一级处理（初沉/混凝沉淀）→ 二级处理（生化：活性污泥法/生物膜法）→ 深度处理（膜分离/臭氧/消毒）→ 达标排放」，具体工艺组合取决于进水水质与出水标准。' },
+            { q: '水质指标 COD、BOD、SS、氨氮、总磷分别代表什么？', ref: 'COD 化学需氧量（有机物被氧化所消耗的氧量）、BOD 生化需氧量（微生物降解有机物耗氧量）、SS 悬浮固体浓度、氨氮为氮污染指标、总磷与水体富营养化相关。' },
+            { q: '国家《城镇污水处理厂污染物排放标准》中一级 A 大致是哪些限值？', ref: 'GB 18918-2002。一级 A 为较严标准：COD≤50mg/L、SS≤10、氨氮≤5(8)、总磷≤0.5、总氮≤15（水温低于12℃时放宽）。' },
+            { q: '什么是厌氧处理？和好氧处理的主要区别是什么？', ref: '厌氧处理在无氧条件下由厌氧菌分解有机物，产生沼气，能耗低、适合高浓度有机废水；好氧处理依靠好氧微生物（活性污泥）降解有机物，效率高但需曝气耗能。' }
+        ],
+        tech: [
+            { q: '请简述 A2O 工艺的流程、原理和主要作用。', ref: 'A2O＝厌氧-缺氧-好氧三段。厌氧段释放磷、缺氧段反硝化脱氮、好氧段硝化并吸收磷，能同步脱氮除磷，是市政污水最常用的主流工艺。' },
+            { q: 'MBR 是什么工艺？相比传统活性污泥法有什么优势和不足？', ref: 'MBR＝膜生物反应器，用膜组件代替二沉池做固液分离。优势：出水水质好、占地小；不足：膜易污染、能耗高、维护成本高。' },
+            { q: '出水 COD 突然超标，你的排查思路是什么？', ref: '先查进水水质水量是否异常，再看生化系统状态（DO、MLSS、SV30、镜检），检查设备故障（曝气/回流/排泥），必要时化验各段水样定位超标环节。' }
+        ],
+        proj: [
+            { q: '水处理项目调试的大致流程是什么？', ref: '单机试车 → 联动试车 → 清水调试 → 污水进水调试 → 菌种接种驯化 → 负荷提升 → 稳定运行 → 性能验收，各阶段记录数据并形成调试报告。' },
+            { q: '现场施工阶段，你要重点管控哪些方面？', ref: '进度计划、施工安全、质量验收、材料设备进场报验、成本控制、与业主/监理/分包方沟通、隐蔽工程验收、施工日志与变更管理。' }
+        ],
+        ops: [
+            { q: '污水厂运行中每天要关注哪些核心指标？', ref: '进出水水质（COD、氨氮、SS、pH）、溶解氧 DO、污泥浓度 MLSS、SV30 沉降比、污泥回流与排放、曝气设备运行、进出水量。' },
+            { q: '什么是污泥膨胀？常见原因和处理措施有哪些？', ref: 'SV30 升高、污泥沉降性变差，多为丝状菌过度增殖。原因：溶解氧不足、低负荷/营养失衡、pH 冲击。措施：加强曝气、调整负荷、加药、控制回流排泥。' }
+        ],
+        mech: [
+            { q: '污水厂常见的主要机械设备有哪些？各自起什么作用？', ref: '格栅除污机（拦截杂物）、提升泵（提升污水）、鼓风机（曝气供氧）、刮吸泥机（排泥）、潜水搅拌器（混合）、加药计量泵、污泥脱水机。' },
+            { q: '泵选型主要看哪些参数？', ref: '流量、扬程、介质性质（腐蚀性/含固）、温度、防爆等级、安装方式、功率与效率、材质。' }
+        ],
+        sales: [
+            { q: '拜访客户做技术交流前，你会准备哪些内容？', ref: '客户背景与所属行业、环保痛点与诉求、当前设施与排放情况、政策法规要求、方案思路与案例、产品技术优势。' }
+        ],
+        func: []
+    };
+    var Q_BANK = {
+        tech: [
+            ['岗位匹配', '你对我们工艺设计/研发方向这个岗位的核心工作内容是怎么理解的？你觉得自己的匹配点在哪里？'],
+            ['能力验证', '讲一个你做过或参与过的项目/课程设计：当时遇到的最大问题是什么，你怎么解决的？'],
+            ['协作沟通', '工艺设计和现场调试意见不一致时，你通常怎么协调？举个具体例子。'],
+            ['学习能力', '水处理技术更新很快，你最近主动学了什么新技术或新标准？']
+        ],
+        proj: [
+            ['岗位匹配', '你对我们项目经理/工程岗的工作内容是怎么理解的？'],
+            ['现场管理', '现场施工进度和计划冲突时，你怎么处理？举个实际例子。'],
+            ['协作沟通', '你通常怎么跟业主、监理、分包方各方打交道？有没有摩擦的例子？'],
+            ['抗压能力', '工期紧、人手不够的时候，你是怎么扛下来的？']
+        ],
+        ops: [
+            ['岗位匹配', '你对我们运营技术岗（污水站点运维）的工作内容是怎么理解的？'],
+            ['现场管理', '站点出现出水超标或设备故障，你通常的处理流程是什么？'],
+            ['抗压能力', '倒班/驻站、节假日值班的工作节奏，你能接受吗？'],
+            ['稳定性', '这个岗位可能在偏远站点或项目现场工作，你怎么看待？']
+        ],
+        mech: [
+            ['岗位匹配', '你对我们机械/结构/电气方向的工作内容是怎么理解的？'],
+            ['专业基础', '你熟练使用的制图/设计软件有哪些？独立完成过什么图纸或设计？'],
+            ['协作沟通', '设计阶段和施工/工艺团队意见不一致时，你怎么协调？'],
+            ['学习能力', '你最近学了什么新的设计规范、软件或技术？']
+        ],
+        func: [
+            ['岗位匹配', '你对我们这个职能岗位（人力/财务/行政等）的核心职责怎么理解？'],
+            ['专业基础', '讲讲你最有把握的模块，你做到过什么程度？'],
+            ['协作沟通', '跨部门沟通时遇到过不配合的情况吗？后来怎么解决的？']
+        ],
+        sales: [
+            ['岗位匹配', '你对我们业务/市场方向的工作怎么理解？为什么想做这个方向？'],
+            ['业务能力', '讲讲你最成功的一个客户/订单案例，你是怎么一步步拿下的？'],
+            ['抗压能力', '丢单或者被拒绝的时候，你怎么调节？举个例子。']
+        ],
+        general: [
+            ['岗位匹配', '你对我们这个岗位的工作内容是怎么理解的？你觉得匹配度在哪？'],
+            ['能力验证', '讲一件你最近完成得比较满意的事，从背景说到结果。'],
+            ['协作沟通', '和同学/同事意见不一致时你怎么处理？举个具体例子。'],
+            ['学习能力', '你最近一次主动学的新东西是什么？怎么学的？']
+        ]
+    };
+
+    function resolveJobType(job) {
+        job = job || '';
+        if (/工艺|研发|化工|蒸发|设计/.test(job)) return 'tech';
+        if (/项目|工程|施工/.test(job)) return 'proj';
+        if (/运营|运维|运行|站点|污水站/.test(job)) return 'ops';
+        if (/销售|售前|市场|商务/.test(job)) return 'sales';
+        if (/机械|结构|电气|自控|机电/.test(job)) return 'mech';
+        if (/人力|人事|财务|行政|法务/.test(job)) return 'func';
+        return 'general';
+    }
+
+    function buildQuestions() {
+        var type = resolveJobType(state.session.applied_job);
+        var pos = state.session.applied_job || '本岗位';
+        var qs = [];
+        qs.push({ dim: '开场', text: '你好，欢迎参加泓济环保的 AI 初试。请先用 2-3 分钟做一个自我介绍，可以讲讲你的学校专业、实习经历或项目经历。' });
+        qs.push({ dim: '基础信息', text: '方便介绍一下你的籍贯和成长环境吗？家人对你到外地发展或长期出差怎么看？' });
+        qs.push({ dim: '基础信息', text: '这个岗位后续可能需要出差或短期驻场，你能接受吗？你期望的工作地点是哪里？' });
+        qs.push({ dim: '实习经历', text: '在校期间有参加过实习、实训或项目吗？简单讲讲你做了什么、学到什么。' });
+        // 专业知识 2 题
+        var proPool = (WATER_KB[type] || []).concat(WATER_KB.common);
+        var picked = [];
+        for (var i = 0; i < proPool.length && picked.length < 2; i++) {
+            if (picked.indexOf(proPool[i]) === -1) picked.push(proPool[i]);
+        }
+        picked.forEach(function (it) { qs.push({ dim: '专业知识', text: it.q, ref: it.ref }); });
+        // 岗位认知 + 动机
+        var base = Q_BANK[type] || Q_BANK.general;
+        qs.push({ dim: '岗位认知', text: '你对我们「' + pos + '」这个岗位的工作内容是怎么理解的？结合你的专业，你觉得自己在哪方面最能胜任？' });
+        qs.push({ dim: '求职动机', text: '为什么会选择进入环保这个行业？对我们泓济环保有什么了解吗？未来两三年你的职业规划是怎样的？' });
+        // 反馈题
+        qs.push({ dim: 'AI面试反馈', feedback: true });
+        return qs;
+    }
+
+    /* ================= Edge TTS 语音引擎（纯前端，与数字人面试同源） ================= */
+    var EDGE_WS_BASE = 'wss://speech.platform.bing.com/consumer/speech/synthesize/readaloud/edge/v1';
+    var EDGE_CLIENT_TOKEN = '6A5AA1D4EAFF4E9FB37E23D68491D6F4';
+    var EDGE_SEC_MS_GEC_VERSION = '1-143.0.3650.75';
+    var edgeOk = true;
+    var edgeLastError = '';
+    var edgeAudio = null, edgeWs = null, edgeUrl = null, edgeAudioChunks = [];
+    var edgeSeq = 0;
+
+    function edgeUuid() {
+        if (window.crypto && window.crypto.getRandomValues) {
+            var b = new Uint8Array(16);
+            window.crypto.getRandomValues(b);
+            var h = '';
+            for (var i = 0; i < 16; i++) h += b[i].toString(16).padStart(2, '0');
+            return h;
+        }
+        var s = '';
+        for (var i = 0; i < 32; i++) s += '0123456789abcdef'[Math.random() * 16 | 0];
+        return s;
+    }
+    function edgeEsc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&apos;'); }
+    function edgeTs() {
+        var d = new Date();
+        var wd = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'][d.getUTCDay()];
+        var mo = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][d.getUTCMonth()];
+        var p = function (n) { return String(n).padStart(2, '0'); };
+        return wd + ' ' + mo + ' ' + p(d.getUTCDate()) + ' ' + d.getUTCFullYear() + ' ' + p(d.getUTCHours()) + ':' + p(d.getUTCMinutes()) + ':' + p(d.getUTCSeconds()) + ' GMT+0000 (Coordinated Universal Time)';
+    }
+    function _sha256Ror(x, n) { return ((x >>> n) | (x << (32 - n))) >>> 0; }
+    function sha256Hex(str) {
+        var msg = new TextEncoder().encode(String(str));
+        var K = new Uint32Array([0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5, 0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174, 0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da, 0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967, 0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85, 0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070, 0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3, 0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2]);
+        var len = msg.length, bitLen = len * 8;
+        var totalLen = Math.ceil((len + 1 + 8) / 64) * 64;
+        var padded = new Uint8Array(totalLen);
+        padded.set(msg); padded[len] = 0x80;
+        var dv = new DataView(padded.buffer);
+        dv.setUint32(totalLen - 8, Math.floor(bitLen / 0x100000000), false);
+        dv.setUint32(totalLen - 4, bitLen >>> 0, false);
+        var H0 = 0x6a09e667, H1 = 0xbb67ae85, H2 = 0x3c6ef372, H3 = 0xa54ff53a, H4 = 0x510e527f, H5 = 0x9b05688c, H6 = 0x1f83d9ab, H7 = 0x5be0cd19;
+        var w = new Uint32Array(64);
+        for (var i = 0; i < totalLen; i += 64) {
+            for (var t = 0; t < 16; t++) w[t] = ((padded[i + t * 4] << 24) | (padded[i + t * 4 + 1] << 16) | (padded[i + t * 4 + 2] << 8) | padded[i + t * 4 + 3]) >>> 0;
+            for (var t2 = 16; t2 < 64; t2++) {
+                var s0 = _sha256Ror(w[t2 - 15], 7) ^ _sha256Ror(w[t2 - 15], 18) ^ (w[t2 - 15] >>> 3);
+                var s1 = _sha256Ror(w[t2 - 2], 17) ^ _sha256Ror(w[t2 - 2], 19) ^ (w[t2 - 2] >>> 10);
+                w[t2] = (w[t2 - 16] + s0 + w[t2 - 7] + s1) >>> 0;
+            }
+            var a = H0, b = H1, c = H2, d = H3, e = H4, f = H5, g = H6, h = H7;
+            for (var t3 = 0; t3 < 64; t3++) {
+                var S1 = _sha256Ror(e, 6) ^ _sha256Ror(e, 11) ^ _sha256Ror(e, 25);
+                var ch = (e & f) ^ (~e & g);
+                var temp1 = (h + S1 + ch + K[t3] + w[t3]) >>> 0;
+                var S0 = _sha256Ror(a, 2) ^ _sha256Ror(a, 13) ^ _sha256Ror(a, 22);
+                var maj = (a & b) ^ (a & c) ^ (b & c);
+                var temp2 = (S0 + maj) >>> 0;
+                h = g; g = f; f = e; e = (d + temp1) >>> 0; d = c; c = b; b = a; a = (temp1 + temp2) >>> 0;
+            }
+            H0 = (H0 + a) >>> 0; H1 = (H1 + b) >>> 0; H2 = (H2 + c) >>> 0; H3 = (H3 + d) >>> 0;
+            H4 = (H4 + e) >>> 0; H5 = (H5 + f) >>> 0; H6 = (H6 + g) >>> 0; H7 = (H7 + h) >>> 0;
+        }
+        return [H0, H1, H2, H3, H4, H5, H6, H7].map(function (x) { return x.toString(16).padStart(8, '0'); }).join('').toUpperCase();
+    }
+    function generateSecMsGec() {
+        var unixSec = BigInt(Math.floor(Date.now() / 1000));
+        var ticks = unixSec + 11644473600n;
+        ticks -= ticks % 300n;
+        ticks *= 10000000n;
+        return sha256Hex(ticks.toString(10) + EDGE_CLIENT_TOKEN);
+    }
+    function edgeCancel() {
+        if (edgeAudio) { try { edgeAudio.pause(); } catch (e) {} edgeAudio = null; }
+        if (edgeWs) { try { edgeWs.close(); } catch (e) {} edgeWs = null; }
+        if (edgeUrl) { try { URL.revokeObjectURL(edgeUrl); } catch (e) {} edgeUrl = null; }
+        edgeAudioChunks = [];
+        var au = document.getElementById('ttsAudio');
+        if (au) { try { au.removeAttribute('src'); au.load(); } catch (e) {} }
+    }
+    function edgeSpeak(text, onstart, onend, onerror) {
+        var myToken = ++edgeSeq;
+        var attempts = 0;
+        var MAX_ATTEMPTS = 2;
+        var run = function () {
+            if (edgeSeq !== myToken) return;
+            attempts++;
+            edgeCancel();
+            var ended = false, started = false, ws = null;
+            try {
+                var gec = null;
+                try { gec = generateSecMsGec(); } catch (e) { gec = ''; }
+                ws = new WebSocket(EDGE_WS_BASE + '?TrustedClientToken=' + EDGE_CLIENT_TOKEN + '&ConnectionId=' + edgeUuid() + '&Sec-MS-GEC=' + gec + '&Sec-MS-GEC-Version=' + EDGE_SEC_MS_GEC_VERSION);
+                ws.binaryType = 'arraybuffer';
+            } catch (e) {
+                edgeLastError = e && e.message ? e.message : String(e);
+                onerror && onerror(e);
+                return;
+            }
+            edgeWs = ws;
+            var fail = function (err) {
+                if (ended) return; ended = true;
+                try { ws.close(); } catch (e) {}
+                if (edgeWs === ws) edgeWs = null;
+                var msg = err && err.message ? err.message : String(err);
+                edgeLastError = msg;
+                if (edgeSeq !== myToken) return;
+                var retryable = !/empty audio|edge play error|interrupted|pause|abort|cancel/i.test(msg);
+                if (retryable && attempts < MAX_ATTEMPTS) { setTimeout(run, 400); return; }
+                onerror && onerror(err);
+            };
+            var finish = function () {
+                try { ws.close(); } catch (e) {}
+                if (edgeWs === ws) edgeWs = null;
+                var total = edgeAudioChunks.reduce(function (a, b) { return a + b.length; }, 0);
+                if (total < 100) { fail(new Error('empty audio')); return; }
+                if (ended) return; ended = true;
+                var blob = new Blob(edgeAudioChunks, { type: 'audio/mpeg' });
+                var url = URL.createObjectURL(blob); edgeUrl = url;
+                var au = document.getElementById('ttsAudio') || new Audio(); edgeAudio = au;
+                au.src = url;
+                au.onended = function () { URL.revokeObjectURL(url); if (edgeUrl === url) edgeUrl = null; if (edgeAudio === au) edgeAudio = null; onend && onend(); };
+                au.onerror = function () {
+                    URL.revokeObjectURL(url); if (edgeUrl === url) edgeUrl = null; if (edgeAudio === au) edgeAudio = null;
+                    onerror && onerror(new Error('edge play error'));
+                };
+                au.play().catch(function (e) {
+                    URL.revokeObjectURL(url); if (edgeUrl === url) edgeUrl = null; if (edgeAudio === au) edgeAudio = null;
+                    if (edgeAudio === au) onerror && onerror(e);
+                });
+            };
+            ws.onopen = function () {
+                var ts = edgeTs();
+                var cfg = '{"context":{"synthesis":{"audio":{"metadataoptions":{"sentenceBoundaryEnabled":"false","wordBoundaryEnabled":"true"},"outputFormat":"audio-24khz-48kbitrate-mono-mp3"}}}}\r\n';
+                ws.send('X-Timestamp:' + ts + '\r\nContent-Type:application/json; charset=utf-8\r\nPath:speech.config\r\n\r\n' + cfg);
+                var ssml = "<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='zh-CN'><voice name='zh-CN-XiaoxiaoNeural'><prosody rate='0%'>" + edgeEsc(text) + "</prosody></voice></speak>";
+                ws.send('X-RequestId:' + edgeUuid() + '\r\nContent-Type:application/ssml+xml\r\nX-Timestamp:' + ts + 'Z\r\nPath:ssml\r\n\r\n' + ssml);
+            };
+            ws.onmessage = function (ev) {
+                if (typeof ev.data === 'string') { if (/Path:turn\.end/.test(ev.data)) finish(); return; }
+                var arr = new Uint8Array(ev.data);
+                if (arr.length < 2) return;
+                var hlen = (arr[0] << 8) | arr[1];
+                if (hlen + 2 > arr.length) return;
+                var hd = new TextDecoder().decode(arr.subarray(2, 2 + hlen));
+                if (/Path:turn\.end/.test(hd)) { finish(); return; }
+                if (/Path:audio/.test(hd)) {
+                    var body = arr.slice(2 + hlen);
+                    if (body.length) { edgeAudioChunks.push(body); if (!started) { started = true; onstart && onstart(); } }
+                }
+            };
+            ws.onerror = function () { fail(new Error('edge ws error')); };
+        };
+        run();
+    }
+    /* 播报文本归一化 */
+    function normalizeSpeakText(t) {
+        t = String(t == null ? '' : t);
+        t = t.replace(/\b[A-Z]{2,6}\b/g, function (m) { return m.split('').join(' '); });
+        if (!/[-–—~～]/.test(t)) return t;
+        var dates = [];
+        t = t.replace(/\d{4}-\d{1,2}-\d{1,2}/g, function (m) { dates.push(m); return '\u0001'; });
+        t = t.replace(/(\d)\s*[-–—~～]\s*(\d)/g, '$1到$2');
+        if (dates.length) t = t.replace(/\u0001/g, function () { return dates.shift(); });
+        return t;
+    }
+    var voice = null, voicesLoaded = false;
+    function pickVoice() {
+        var vs = window.speechSynthesis ? window.speechSynthesis.getVoices() : [];
+        if (vs.length) voicesLoaded = true;
+        voice = vs.find(function (v) { return /zh[-_]CN/i.test(v.lang); }) || vs.find(function (v) { return /Chinese/i.test(v.name); }) || vs.find(function (v) { return /zh/i.test(v.lang); }) || null;
+    }
+    if ('speechSynthesis' in window) { pickVoice(); window.speechSynthesis.onvoiceschanged = pickVoice; }
+    function localSay(text, opt) {
+        opt = opt || {};
+        if (!window.speechSynthesis) { opt.onerror && opt.onerror(new Error('no tts')); return; }
+        if (!voice) pickVoice();
+        window.speechSynthesis.cancel();
+        var u = new SpeechSynthesisUtterance(text);
+        if (voice) u.voice = voice;
+        u.lang = voice ? voice.lang : 'zh-CN';
+        u.rate = 1; u.pitch = 1.05;
+        state.speaking = true; setAvatarSpeaking(true);
+        u.onend = function () { state.speaking = false; setAvatarSpeaking(false); opt.onend && opt.onend(); };
+        u.onerror = function () { state.speaking = false; setAvatarSpeaking(false); opt.onerror && opt.onerror(new Error('local tts error')); };
+        window.speechSynthesis.speak(u);
+    }
+    function stopAllSpeech() {
+        try { window.speechSynthesis && window.speechSynthesis.cancel(); } catch (e) {}
+        edgeCancel();
+        state.speaking = false; setAvatarSpeaking(false);
+    }
+    function say(text, opt) {
+        opt = opt || {};
+        text = normalizeSpeakText(text);
+        stopAllSpeech();
+        state.speaking = true; setAvatarSpeaking(true);
+        var useEdge = edgeOk && typeof WebSocket !== 'undefined';
+        if (useEdge) {
+            edgeSpeak(text,
+                function () {},
+                function () { state.speaking = false; setAvatarSpeaking(false); opt.onend && opt.onend(); },
+                function (e) {
+                    var msg = e && e.message ? e.message : String(e);
+                    state.speaking = false; setAvatarSpeaking(false);
+                    if (!/interrupted|pause|abort|cancel/i.test(msg)) {
+                        edgeOk = false;
+                        updateEngineHint('Edge TTS 不可用，已回退浏览器语音');
+                    }
+                    localSay(text, opt);
+                });
+            return;
+        }
+        localSay(text, opt);
+    }
+    function updateEngineHint(msg) {
+        var el = document.getElementById('engineHint');
+        if (!el) return;
+        if (edgeOk) { el.textContent = '🔊 语音：Edge TTS（晓晓 · 女声）' + (msg ? ' · ' + msg : ''); }
+        else { el.textContent = '🔊 语音：浏览器内置语音' + (edgeLastError ? '（' + edgeLastError + '）' : ''); }
+    }
+
+    /* ================= 面试界面 ================= */
+    function setAvatarSpeaking(on) {
+        var a = document.getElementById('aiAvatar');
+        if (a) a.classList.toggle('speaking', on);
+        var st = document.getElementById('aiStatus');
+        if (st) st.textContent = on ? '正在播报题目…' : (state.qIdx >= 0 ? '请作答' : '准备中…');
+    }
+    function showView(id) {
+        ['viewGate', 'viewReady', 'viewInterview', 'viewFeedback', 'viewDone'].forEach(function (v) {
+            document.getElementById(v).classList.toggle('hidden', v !== id);
+        });
+        if (id === 'viewInterview') document.getElementById('viewInterview').classList.remove('hidden');
+        if (id === 'viewFeedback') document.getElementById('viewFeedback').classList.remove('hidden');
+        window.scrollTo({ top: 0 });
+    }
+    function renderQ() {
+        var q = state.questions[state.qIdx];
+        document.getElementById('qCur').textContent = state.qIdx + 1;
+        document.getElementById('qTotal').textContent = state.questions.length;
+        document.getElementById('qDim').textContent = q.dim;
+        document.getElementById('qText').textContent = q.text;
+        var refBtn = document.getElementById('qRefBtn');
+        var refBody = document.getElementById('qRefBody');
+        if (q.ref) {
+            refBtn.classList.remove('hidden');
+            refBody.textContent = q.ref;
+            refBody.classList.add('hidden');
+            refBtn.textContent = '📌 本题知识参考 ▾';
+        } else {
+            refBtn.classList.add('hidden');
+            refBody.classList.add('hidden');
+        }
+        var ta = document.getElementById('answerText');
+        ta.value = state.qNote[state.qIdx] || '';
+        var btn = document.getElementById('nextBtn');
+        btn.textContent = state.qIdx >= state.questions.length - 1 ? '去评价 →' : '下一题 →';
+    }
+    function toggleRef() {
+        var b = document.getElementById('qRefBody');
+        var hidden = b.classList.contains('hidden');
+        b.classList.toggle('hidden', !hidden);
+        document.getElementById('qRefBtn').textContent = hidden ? '📌 本题知识参考 ▴' : '📌 本题知识参考 ▾';
+    }
+    function speakCurrent() {
+        var q = state.questions[state.qIdx];
+        if (!q || q.feedback) return;
+        say('第' + (state.qIdx + 1) + '题。' + q.text, { onend: function () { updateEngineHint(''); } });
+    }
+    function nextQ() {
+        saveAnswer();
+        stopAllSpeech();
+        if (state.qIdx < state.questions.length - 1) {
+            state.qIdx++;
+            renderQ();
+            setTimeout(speakCurrent, 350);
+        } else {
+            // 进入反馈题
+            state.qIdx++;
+            renderQ();
+            showView('viewFeedback');
+            say('面试问题已结束，请完成最后的反馈评价，谢谢。');
+        }
+    }
+    function saveAnswer() {
+        var t = document.getElementById('answerText').value.trim();
+        if (state.qIdx < state.questions.length) state.qNote[state.qIdx] = t;
+    }
+    function clearAnswer() { document.getElementById('answerText').value = ''; }
+
+    /* ================= 语音回答 ================= */
+    var rec = null;
+    function toggleRecord() {
+        var btn = document.getElementById('recBtn');
+        var SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+        if (rec) { stopRecord(); return; }
+        if (!SR) { toast('当前浏览器不支持语音识别，请直接文字输入'); return; }
+        try {
+            rec = new SR();
+            rec.lang = 'zh-CN'; rec.continuous = true; rec.interimResults = true;
+            rec.onresult = function (ev) {
+                var t = '';
+                for (var i = ev.resultIndex; i < ev.results.length; i++) { t += (ev.results[i][0] && ev.results[i][0].transcript) || ''; }
+                var ta = document.getElementById('answerText');
+                var prev = ta.value;
+                if (rec._base == null) rec._base = '';
+                ta.value = rec._base + t;
+            };
+            rec.onerror = function (ev) {
+                if (ev.error === 'not-allowed') { toast('麦克风权限被拒绝，可改为文字输入'); stopRecord(); }
+                else if (ev.error === 'network') { toast('语音识别网络异常，可改为文字输入'); }
+            };
+            rec.onend = function () {
+                if (rec) { try { rec.start(); } catch (e) {} }
+            };
+            rec.start();
+            rec._base = document.getElementById('answerText').value;
+            btn.textContent = '⏹ 结束回答';
+            document.getElementById('recState').textContent = '🔴 正在聆听…（再次点击结束）';
+            document.getElementById('recState').classList.add('on');
+        } catch (e) {
+            toast('语音识别启动失败，请直接文字输入');
+        }
+    }
+    function stopRecord() {
+        if (rec) {
+            try { rec.onend = null; rec.stop(); } catch (e) {}
+            rec = null;
+        }
+        document.getElementById('recBtn').textContent = '🎙 开始回答';
+        document.getElementById('recState').textContent = '✅ 回答已记录';
+        document.getElementById('recState').classList.remove('on');
+    }
+
+    /* ================= 反馈 ================= */
+    function setFb(k, v) {
+        state.fbScores[k] = v;
+        var box = document.getElementById('stars-' + k);
+        if (box) box.querySelectorAll('button').forEach(function (b) { b.classList.toggle('on', +b.dataset.v <= v); });
+    }
+
+    /* ================= 本地启发式评分（兜底，DeepSeek 失败时使用） ================= */
+    var WATER_KW = ['水', '污水', '废水', '工艺', '水质', 'COD', 'BOD', '氨氮', '总磷', '总氮', 'SS', 'A2O', 'MBR', 'UASB', 'SBR', '厌氧', '好氧', '曝气', '沉淀', '过滤', '膜', '脱氮', '除磷', '污泥', '活性污泥', '生化', '预处理', '消毒', '达标', '排放', '运行', '调试', '巡检', '运维', '药剂', 'CAD', '图纸', '设计', '施工', '项目', '标高', '管网', '泵', '风机'];
+    var COLLAB_KW = ['沟通', '协调', '团队', '合作', '协作', '分歧', '配合', '对接', '商量', '讨论'];
+    var MOTIVE_KW = ['规划', '愿意', '接受', '稳定', '长期', '成长', '学习', '热情', '期待', '坚持', '提升', '发展', '目标'];
+    var VALUE_KW = ['责任', '诚信', '质量', '安全', '环保', '底线', '原则', '认真', '负责', '规范', '标准'];
+    function countKw(text, arr) {
+        var c = 0;
+        arr.forEach(function (k) { if (text.indexOf(k) !== -1) c++; });
+        return c;
+    }
+    function localScore() {
+        var answers = state.questions.map(function (q, i) { return { dim: q.dim, text: q.text, answer: state.qNote[i] || '' }; });
+        var all = answers.map(function (a) { return a.answer; }).join('\n');
+        var totalLen = all.replace(/\s/g, '').length;
+        var scores = { match: 1, express: 1, learn: 1, collab: 1, motive: 1, value: 1 };
+        // 表达与逻辑：按整体回答量
+        var lenScore = totalLen >= 500 ? 5 : totalLen >= 320 ? 4 : totalLen >= 180 ? 3 : totalLen >= 80 ? 2 : 1;
+        scores.express = lenScore;
+        // 专业与学习：水处理关键词密度
+        var wc = countKw(all, WATER_KW);
+        scores.learn = Math.min(5, Math.max(1, 1 + Math.round(wc / 4)));
+        // 岗位匹配：专业关键词 + 回答量
+        var match = Math.min(5, Math.max(1, Math.round((wc / 5 + lenScore) / 2)));
+        scores.match = match;
+        // 协作沟通
+        scores.collab = Math.min(5, Math.max(1, 1 + Math.round(countKw(all, COLLAB_KW) / 2)));
+        // 动机与稳定
+        scores.motive = Math.min(5, Math.max(1, 1 + Math.round(countKw(all, MOTIVE_KW) / 3)));
+        // 价值观
+        scores.value = Math.min(5, Math.max(1, 1 + Math.round(countKw(all, VALUE_KW) / 3)));
+        // 综合分 0-100（加权）
+        var overall = Math.round((scores.match * 0.25 + scores.express * 0.2 + scores.learn * 0.2 + scores.collab * 0.1 + scores.motive * 0.15 + scores.value * 0.1) * 20);
+        var summary = {
+            scores: scores,
+            overall: Math.min(100, Math.max(0, overall)),
+            evidence: {},
+            summary: 'AI 本地自动评估：回答充实度 ' + (lenScore >= 4 ? '较好' : lenScore >= 3 ? '中等' : '偏少') + '，专业关键词命中 ' + wc + ' 处。',
+            advice: '建议 HR 结合简历与用人部门意见复核，重点考察表达完整度与专业深度。',
+            source: 'local'
+        };
+        return summary;
+    }
+
+    /* ================= DeepSeek 自动评估（可选增强） ================= */
+    function fetchWithTimeout(url, opts, ms) {
+        return new Promise(function (resolve, reject) {
+            var timer = setTimeout(function () { reject(new Error('timeout')); }, ms || 12000);
+            fetch(url, opts).then(function (r) {
+                clearTimeout(timer);
+                r.json().then(resolve).catch(reject);
+            }).catch(function (e) { clearTimeout(timer); reject(e); });
+        });
+    }
+    function aiEvaluate() {
+        var questions = state.questions.map(function (q, i) { return { dim: q.dim, text: q.text, answer: state.qNote[i] || '' }; });
+        var name = state.session ? state.session.candidate_name : '';
+        var pos = state.session ? state.session.applied_job : '';
+        var cfg = window.SUPABASE_CONFIG || {};
+        var sUrl = cfg.url || '';
+        var sKey = cfg.anonKey || '';
+        if (!sUrl || !sKey) return Promise.reject(new Error('no config'));
+        return fetchWithTimeout(sUrl + 'functions/v1/evaluate_candidate', {
+            method: 'POST',
+            headers: { 'apikey': sKey, 'Authorization': 'Bearer ' + sKey, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ candidateName: name, candidatePos: pos, questions: questions })
+        }, 12000).then(function (r) {
+            if (!r || r.error || !r.scores) throw new Error('bad response');
+            var scores = r.scores;
+            var overall = Math.round(DIMS.reduce(function (s, d) { return s + (scores[d.key] || 0); }, 0) / DIMS.length * 20);
+            return {
+                scores: scores,
+                overall: Math.min(100, Math.max(0, overall)),
+                evidence: r.evidence || {},
+                summary: r.summary || '',
+                advice: r.advice || '',
+                source: 'deepseek'
+            };
+        });
+    }
+
+    /* ================= 提交 ================= */
+    function submitInterview() {
+        saveAnswer();
+        if (state.qIdx < state.questions.length) state.qNote[state.qIdx] = '';
+        var fb = state.fbScores;
+        if (!fb.overall || !fb.voice || !fb.questions) { toast('请先完成三项满意度评分'); return; }
+        var btn = document.getElementById('fbSubmitBtn');
+        btn.disabled = true; btn.textContent = 'AI 评估中…（约 10 秒）';
+        stopAllSpeech();
+        toast('正在生成量化评估…');
+
+        var local = localScore();
+        var useDeepseek = false;
+        try { useDeepseek = !!(window.SUPABASE_CONFIG && window.SUPABASE_CONFIG.url); } catch (e) {}
+
+        var finalized = false;
+        var finalize = function (result) {
+            if (finalized) return; finalized = true;
+            clearTimeout(timer);
+            var summary = {
+                job_type: resolveJobType(state.session.applied_job),
+                candidate_name: state.session.candidate_name,
+                applied_job: state.session.applied_job,
+                scores: result.scores,
+                overall: result.overall,
+                evidence: result.evidence || {},
+                summary: result.summary || '',
+                advice: result.advice || '',
+                source: result.source || 'local',
+                feedback: fb,
+                advice_text: document.getElementById('fbAdvice').value.trim(),
+                punctuality: {
+                    late_minutes: state.punct ? state.punct.late_minutes : null,
+                    punctuality_score: state.punct ? state.punct.punctuality_score : null,
+                    punctuality_label: state.punct ? state.punct.punctuality_label : null
+                },
+                questions: state.questions.map(function (q, i) {
+                    return { idx: i + 1, dim: q.dim, text: q.text, answer: state.qNote[i] || '', ref: q.ref || '' };
+                })
+            };
+            fetch('api/interview/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code: state.code, phone: state.phone, summary: summary, overall: result.overall })
+            }).then(function (r) { return r.json(); }).then(function (res) {
+                btn.disabled = false; btn.textContent = '✅ 提交面试结果';
+                if (!res.ok) { toast(res.error || '提交失败，请重试'); return; }
+                showDone(result);
+            }).catch(function (e) {
+                btn.disabled = false; btn.textContent = '✅ 提交面试结果';
+                toast('网络异常，提交失败');
+                console.error(e);
+            });
+        };
+
+        // 先本地秒出结果，DeepSeek 并行尝试（超时 12s 内返回则替换）
+        var deepseekPromise = useDeepseek ? aiEvaluate().catch(function () { return null; }) : Promise.resolve(null);
+        var timer = setTimeout(function () {
+            // 12s 内 DeepSeek 未返回 → 用本地结果
+            finalize(local);
+        }, 12500);
+        deepseekPromise.then(function (ds) {
+            finalize(ds && ds.overall != null ? ds : local);
+        });
+    }
+
+    /* ================= 完成页 ================= */
+    function showDone(result) {
+        showView('viewDone');
+        var pt = state.punct || {};
+        document.getElementById('donePunct').textContent = (pt.punctuality_score != null ? pt.punctuality_score + ' 分' : '—') + ' · ' + (PUNCT_LABEL[pt.punctuality_label] || '');
+        document.getElementById('doneOverall').textContent = result.overall + ' 分';
+        document.getElementById('doneCode').textContent = state.code;
+        var note = '';
+        if (pt.punctuality_label === 'on_time') note = '⏱ 你准时参加了面试，准时评估 10 分已计入量化评估。';
+        else if (pt.punctuality_label === 'late_short') note = '⏱ 你迟到了 ' + pt.late_minutes + ' 分钟，准时评估 6 分已计入量化评估，下次请提前进入。';
+        else if (pt.punctuality_label === 'late_long') note = '⏱ 你迟到了 ' + pt.late_minutes + ' 分钟，准时评估 3 分。';
+        note += '<br>📊 你的 AI 初试综合分：' + result.overall + ' 分（六维：' +
+            DIMS.map(function (d) { return d.name.slice(0, 4) + ' ' + (result.scores[d.key] || 0) + '分'; }).join(' · ') + '）';
+        document.getElementById('doneNote').innerHTML = note;
+    }
+
+    /* ================= 流程控制 ================= */
+    function doVerify() {
+        var code = (document.getElementById('gateCode').value || '').trim().toUpperCase();
+        var phone = document.getElementById('gatePhone').value.trim();
+        if (!/^[A-Z0-9]{6}$/.test(code)) { toast('请输入 6 位预约码'); return; }
+        if (!/^1\d{10}$/.test(phone)) { toast('请输入正确的手机号'); return; }
+        var btn = document.querySelector('#viewGate .gate-btn');
+        btn.disabled = true; btn.textContent = '验证中…';
+        fetch('api/interview/verify', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: code, phone: phone })
+        }).then(function (r) { return r.json(); }).then(function (res) {
+            btn.disabled = false; btn.textContent = '验证并进入面试 →';
+            if (!res.ok) { toast(res.error || '验证失败'); return; }
+            state.code = code; state.phone = phone;
+            state.session = res;
+            showReady(res);
+        }).catch(function (e) {
+            btn.disabled = false; btn.textContent = '验证并进入面试 →';
+            toast('网络异常，请重试');
+            console.error(e);
+        });
+    }
+
+    function showReady(s) {
+        document.getElementById('readyName').textContent = s.candidate_name || '候选人';
+        document.getElementById('readyJob').textContent = s.applied_job || '未填写意向岗位';
+        document.getElementById('readyCode').textContent = '预约码：' + s.booking_code;
+        document.getElementById('readyTime').textContent = parseCnTime(s.scheduled_at) || '—';
+        showView('viewReady');
+
+        // 若已是缺席，禁止进入
+        if (s.status === 'absent') {
+            var banner = document.getElementById('punctBanner');
+            banner.className = 'punct-banner bad';
+            banner.innerHTML = '<div class="p-icon">⛔</div><div><b>该预约已超时视为缺席（准时评估 0 分）</b>，无法进入面试。请联系 HR 重新安排。</div>';
+            var startBtn = document.querySelector('#viewReady .btn-primary');
+            if (startBtn) startBtn.style.display = 'none';
+            return;
+        }
+        // 准时提示
+        var banner = document.getElementById('punctBanner');
+        banner.className = 'punct-banner';
+        banner.innerHTML = '<div class="p-icon">⏱️</div><div>进入后将自动记录准时情况：<b>按约 +15 分钟内进入 = 准时 10 分</b>；迟到 &lt;=30 分钟 = 6 分；迟到 &gt;30 分钟 = 3 分。</div>';
+    }
+
+    function startInterview() {
+        // 先标记开始（记录实际进入时间 + 准时量化）
+        var btn = document.querySelector('#viewReady .btn-primary');
+        btn.disabled = true; btn.textContent = '正在进入面试…';
+        fetch('api/interview/start', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ code: state.code, phone: state.phone })
+        }).then(function (r) { return r.json(); }).then(function (res) {
+            btn.disabled = false; btn.textContent = '🎙 开始面试';
+            if (!res.ok) {
+                toast(res.error || '无法进入面试');
+                return;
+            }
+            state.punct = res;
+            var banner = document.getElementById('punctBanner');
+            var cls = res.punctuality_label === 'on_time' ? 'good' : (res.punctuality_label === 'late_short' ? 'warn' : 'bad');
+            banner.className = 'punct-banner ' + cls;
+            var lateDesc = res.late_minutes > 0 ? '你比预约时间晚了 ' + res.late_minutes + ' 分钟' : '你准时（或提前）进入面试';
+            banner.innerHTML = '<div class="p-icon">' + (res.punctuality_label === 'on_time' ? '✅' : '⏱️') + '</div><div><b>' + lateDesc + '</b> · 准时评估：<b>' + res.punctuality_score + ' 分</b>（' + (PUNCT_LABEL[res.punctuality_label] || '') + '）</div>';
+
+            // 生成题目并进入面试
+            state.questions = buildQuestions();
+            state.qNote = new Array(state.questions.length).fill('');
+            state.qIdx = 0;
+            renderQ();
+            showView('viewInterview');
+            setTimeout(function () {
+                say('你好，' + (state.session.candidate_name || '同学') + '，我是泓济环保的 AI 面试官泓宝。接下来我会问你几个问题，请尽量完整作答。准备好了我们就开始。', { onend: function () { setTimeout(speakCurrent, 350); } });
+            }, 300);
+        }).catch(function (e) {
+            btn.disabled = false; btn.textContent = '🎙 开始面试';
+            toast('网络异常，请重试');
+            console.error(e);
+        });
+    }
+
+    /* ================= 初始化 ================= */
+    document.getElementById('gateCode').addEventListener('input', function () { this.value = this.value.toUpperCase(); });
+    if (state.code && state.phone) {
+        document.getElementById('gateCode').value = state.code;
+        document.getElementById('gatePhone').value = state.phone;
+        doVerify();
+    } else {
+        showView('viewGate');
+    }
+    updateEngineHint();
+    </script>
+</body>
+</html>

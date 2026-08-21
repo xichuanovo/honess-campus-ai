@@ -1,0 +1,44 @@
+# Deploy Website to GitHub Pages
+# 校招站 + AI 初试 静态站自动部署
+# 推送 website/** 或本 workflow 时触发
+
+name: Deploy Website to GitHub Pages
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - 'website/**'
+      - '.github/workflows/deploy-pages.yml'
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Pages
+        uses: actions/configure-pages@v4
+
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # 发布 website 目录（所有页面已是相对路径，兼容子路径部署）
+          path: 'website'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

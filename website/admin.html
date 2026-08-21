@@ -1,0 +1,2300 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>HR管理后台 | 泓济环保校招</title>
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        .admin-layout { display: flex; min-height: calc(100vh - 64px); }
+        .admin-sidebar {
+            width: 220px; background: var(--primary-dark); color: white;
+            padding: 24px 0; flex-shrink: 0; position: sticky; top: 64px; height: calc(100vh - 64px); overflow-y: auto;
+            display: flex; flex-direction: column;
+        }
+        .admin-sidebar .sidebar-item {
+            padding: 14px 24px; cursor: pointer; font-size: 15px; font-weight: 500;
+            display: flex; align-items: center; gap: 10px; transition: all 0.2s;
+            border-left: 3px solid transparent;
+        }
+        .admin-sidebar .sidebar-item:hover { background: rgba(255,255,255,0.1); }
+        .admin-sidebar .sidebar-item.active { background: rgba(255,255,255,0.15); border-left-color: var(--accent); }
+        .admin-sidebar .sidebar-item .sidebar-icon { font-size: 18px; }
+        .admin-sidebar .sidebar-badge { margin-left: auto; background: var(--accent); color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px; font-weight: 700; }
+
+        .admin-content { flex: 1; padding: 28px; overflow-x: auto; }
+        .admin-page { display: none; }
+        .admin-page.active { display: block; }
+        .admin-page-title { font-size: 22px; font-weight: 700; margin-bottom: 24px; color: var(--text); }
+
+        /* Dashboard */
+        .stat-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; margin-bottom: 28px; }
+        .stat-card { background: var(--white); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); }
+        .stat-card .stat-icon { font-size: 32px; margin-bottom: 8px; }
+        .stat-card .stat-num { font-size: 28px; font-weight: 800; color: var(--primary-dark); }
+        .stat-card .stat-label { font-size: 13px; color: var(--text-light); margin-top: 4px; }
+
+        .chart-card { background: var(--white); border-radius: var(--radius); padding: 24px; box-shadow: var(--shadow); margin-bottom: 20px; }
+        .chart-card h3 { font-size: 16px; font-weight: 700; margin-bottom: 16px; color: var(--text); }
+        .bar-chart { display: flex; flex-direction: column; gap: 8px; }
+        .bar-row { display: flex; align-items: center; gap: 12px; }
+        .bar-row .bar-label { width: 100px; font-size: 13px; text-align: right; color: var(--text-light); }
+        .bar-row .bar-track { flex: 1; height: 24px; background: var(--secondary); border-radius: 6px; overflow: hidden; }
+        .bar-row .bar-fill { height: 100%; border-radius: 6px; background: linear-gradient(90deg, var(--primary), var(--primary-light)); display: flex; align-items: center; justify-content: flex-end; padding-right: 8px; color: white; font-size: 12px; font-weight: 700; min-width: 30px; }
+
+        .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+
+        /* Candidates */
+        .filter-bar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
+        .filter-bar select, .filter-bar input {
+            padding: 10px 14px; border: 2px solid var(--border); border-radius: 8px; font-size: 14px; font-family: inherit; background: var(--white);
+        }
+        .filter-bar select:focus, .filter-bar input:focus { outline: none; border-color: var(--primary); }
+        .filter-bar .search-input { flex: 1; min-width: 200px; }
+
+        .candidate-table { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; }
+        .candidate-table table { width: 100%; }
+        .candidate-table th { background: var(--secondary); font-size: 13px; font-weight: 600; white-space: nowrap; }
+        .candidate-table td { font-size: 14px; }
+        .candidate-table tr { cursor: pointer; }
+        .candidate-table .edu-badge { font-size: 11px; padding: 3px 8px; border-radius: 6px; font-weight: 600; }
+        .candidate-table .mbti-badge { font-size: 12px; padding: 3px 8px; border-radius: 6px; font-weight: 700; background: #f3e5f5; color: #7b1fa2; }
+        .candidate-table .match-score { font-weight: 700; }
+        .candidate-table .match-score.high { color: var(--success); }
+        .candidate-table .match-score.mid { color: var(--warning); }
+        .candidate-table .match-score.low { color: var(--text-light); }
+        .candidate-table .batch-badge { display: inline-block; margin-left: 4px; padding: 1px 6px; border-radius: 4px; font-size: 10px; font-weight: 600; background: #e3f2fd; color: #1565c0; white-space: nowrap; }
+
+        /* Candidate Detail Modal */
+        .detail-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: none; align-items: flex-start; justify-content: center; padding: 20px; overflow-y: auto; }
+        .detail-overlay.show { display: flex; }
+        .detail-modal { background: var(--white); border-radius: var(--radius); max-width: 900px; width: 100%; margin: auto; overflow: hidden; }
+        .detail-header { background: linear-gradient(135deg, var(--primary-dark), var(--primary)); color: white; padding: 28px 32px; position: relative; }
+        .detail-header h2 { font-size: 24px; margin-bottom: 8px; }
+        .detail-header .detail-meta { display: flex; gap: 8px; flex-wrap: wrap; }
+        .detail-header .detail-meta .badge { background: rgba(255,255,255,0.2); color: white; }
+        .detail-header .detail-close { position: absolute; top: 16px; right: 20px; font-size: 28px; cursor: pointer; background: none; border: none; color: white; }
+        .detail-body { padding: 28px 32px; max-height: 60vh; overflow-y: auto; }
+        .detail-section { margin-bottom: 24px; }
+        .detail-section h4 { font-size: 15px; font-weight: 700; color: var(--primary-dark); margin-bottom: 10px; padding-bottom: 6px; border-bottom: 1px solid var(--border); }
+        .detail-section p { font-size: 14px; color: var(--text); line-height: 1.8; }
+        .detail-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .detail-info-item { font-size: 14px; }
+        .detail-info-item .info-label { color: var(--text-light); font-size: 12px; }
+        .detail-info-item .info-value { font-weight: 600; margin-top: 2px; }
+
+        .rec-list { display: flex; flex-direction: column; gap: 8px; }
+        .rec-item { display: flex; align-items: center; gap: 12px; padding: 12px 16px; background: var(--secondary); border-radius: 8px; }
+        .rec-item .rec-score { width: 48px; height: 48px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 700; color: white; flex-shrink: 0; }
+        .rec-item .rec-score.high { background: var(--success); }
+        .rec-item .rec-score.mid { background: var(--warning); }
+        .rec-item .rec-score.low { background: var(--text-light); }
+        .rec-item .rec-info { flex: 1; }
+        .rec-item .rec-title { font-weight: 700; font-size: 15px; }
+        .rec-item .rec-reason { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+
+        .status-select { padding: 6px 12px; border: 2px solid var(--border); border-radius: 6px; font-size: 13px; font-family: inherit; }
+
+        /* MBTI维度条（候选人详情） */
+        .mbti-dim-bar { margin-bottom: 14px; }
+        .mbti-dim-bar-header { display: flex; justify-content: space-between; margin-bottom: 4px; font-size: 13px; }
+        .mbti-dim-bar-header .dim-label { font-weight: 600; }
+        .mbti-dim-bar-header .dim-value { color: var(--primary); font-weight: 700; }
+        .mbti-dim-bar-track { height: 10px; background: var(--secondary); border-radius: 5px; overflow: hidden; }
+        .mbti-dim-bar-fill { height: 100%; border-radius: 5px; }
+        .mbti-dim-bar-labels { display: flex; justify-content: space-between; margin-top: 3px; font-size: 11px; color: var(--text-light); }
+        .mbti-dim-bar-fill.ei { background: linear-gradient(90deg, #f0932b, #ff9f43); }
+        .mbti-dim-bar-fill.sn { background: linear-gradient(90deg, #6c5ce7, #a29bfe); }
+        .mbti-dim-bar-fill.tf { background: linear-gradient(90deg, #0984e3, #74b9ff); }
+        .mbti-dim-bar-fill.jp { background: linear-gradient(90deg, #00b894, #55efc4); }
+        .mbti-dim-bar-fill.at { background: linear-gradient(90deg, #e17055, #fab1a0); }
+
+        /* 简历在线预览弹窗 */
+        .resume-preview-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); z-index: 300; display: none; align-items: center; justify-content: center; padding: 20px; }
+        .resume-preview-overlay.show { display: flex; }
+        .resume-preview-modal { background: var(--white); border-radius: var(--radius); width: 100%; max-width: 900px; height: 85vh; display: flex; flex-direction: column; overflow: hidden; }
+        .resume-preview-header { padding: 14px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .resume-preview-header h3 { font-size: 16px; font-weight: 700; }
+        .resume-preview-body { flex: 1; overflow: hidden; }
+        .resume-preview-body iframe { width: 100%; height: 100%; border: none; }
+
+        /* Jobs Management */
+        .job-mgmt-table { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); overflow: hidden; margin-bottom: 20px; }
+        .job-mgmt-table table { width: 100%; }
+
+        /* Mobile job cards (hidden on desktop) */
+        .job-cards { display: none; flex-direction: column; gap: 14px; margin-bottom: 20px; }
+        .job-card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 18px; }
+        .job-card .jc-head { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 12px; }
+        .job-card .jc-title { font-size: 16px; font-weight: 700; color: var(--text); }
+        .job-card .jc-info { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 16px; margin-bottom: 14px; }
+        .job-card .jc-field { font-size: 13px; }
+        .job-card .jc-field .info-label { color: var(--text-light); font-size: 11px; display: block; }
+        .job-card .jc-field .info-value { font-weight: 600; margin-top: 1px; }
+        .job-card .jc-actions { display: flex; gap: 8px; flex-wrap: wrap; border-top: 1px solid var(--border); padding-top: 12px; }
+
+        /* Modal Forms */
+        .form-modal { background: var(--white); border-radius: var(--radius); max-width: 640px; width: 100%; margin: auto; overflow: hidden; }
+        .form-modal-header { padding: 20px 28px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .form-modal-header h2 { font-size: 20px; font-weight: 700; }
+        .form-modal-body { padding: 28px; max-height: 65vh; overflow-y: auto; }
+        .form-modal-footer { padding: 16px 28px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 12px; }
+
+        /* Upload Tabs */
+        .upload-tabs { display:flex; gap:6px; margin-bottom:0; border-bottom:2px solid var(--border); }
+        .upload-tab { padding:12px 24px; border:none; background:transparent; cursor:pointer; font-size:14px; font-weight:600; color:var(--text-light); font-family:inherit; border-bottom:3px solid transparent; margin-bottom:-2px; transition:all 0.2s; }
+        .upload-tab:hover { color:var(--primary); }
+        .upload-tab.active { color:var(--primary-dark); border-bottom-color:var(--primary); }
+        .upload-tab-content { display:none; }
+        .upload-tab-content.active { display:block; }
+
+        /* Upload Zone */
+        .upload-paper-zone { border: 3px dashed var(--border); border-radius: var(--radius); padding: 32px; text-align: center; cursor: pointer; transition: all 0.3s; background: var(--secondary); margin-bottom: 20px; }
+        .upload-paper-zone:hover { border-color: var(--primary); background: #e0f0e8; }
+        .upload-paper-zone .upload-icon { font-size: 40px; margin-bottom: 8px; }
+
+        /* Mobile sidebar toggle button (hidden on desktop) */
+        .sidebar-toggle {
+            display: none;
+            position: fixed; top: 72px; left: 12px; z-index: 150;
+            width: 44px; height: 44px; border-radius: 50%;
+            background: var(--primary-dark); color: white; border: none;
+            font-size: 22px; cursor: pointer; box-shadow: var(--shadow);
+            align-items: center; justify-content: center;
+        }
+        .sidebar-backdrop {
+            display: none; position: fixed; inset: 0; z-index: 140;
+            background: rgba(0,0,0,0.45);
+        }
+
+        @media (max-width: 1024px) {
+            .admin-sidebar { width: 180px; }
+            .stat-grid { grid-template-columns: repeat(2, 1fr); }
+            .two-col { grid-template-columns: 1fr; }
+        }
+        @media (max-width: 768px) {
+            .sidebar-toggle { display: flex; }
+            .admin-sidebar {
+                display: flex; position: fixed; top: 64px; left: 0; bottom: 0;
+                width: 240px; z-index: 160; height: calc(100vh - 64px);
+                transform: translateX(-100%); transition: transform 0.28s ease;
+                box-shadow: 4px 0 16px rgba(0,0,0,0.2);
+            }
+            .admin-sidebar.open { transform: translateX(0); }
+            .sidebar-backdrop.show { display: block; }
+            .admin-content { padding: 16px; padding-top: 64px; }
+            /* Jobs: 表格过宽，竖屏改用卡片 */
+            .job-mgmt-table { display: none; }
+            .job-cards { display: flex; }
+            .job-page-head { flex-wrap: wrap; gap: 10px; }
+            .job-page-head .admin-page-title { font-size: 18px; }
+        }
+
+        /* ===== 协作功能样式 ===== */
+        .sidebar-user { display:flex; align-items:center; gap:12px; padding:16px 24px; margin-bottom:8px; border-bottom:1px solid rgba(255,255,255,0.1); }
+        .sidebar-user .su-avatar { width:38px; height:38px; border-radius:50%; background:var(--accent); color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:15px; flex-shrink:0; }
+        .sidebar-user .su-name { font-size:14px; font-weight:600; color:#fff; }
+        .sidebar-user .su-role { font-size:11px; color:rgba(255,255,255,0.6); margin-top:2px; }
+
+        /* 候选人评论区 */
+        .collab-section { margin-top: 8px; }
+        .comment-list { display:flex; flex-direction:column; gap:12px; margin-bottom:16px; }
+        .comment-item { display:flex; gap:12px; }
+        .comment-item .c-avatar { width:34px; height:34px; border-radius:50%; color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; flex-shrink:0; }
+        .comment-item .c-body { flex:1; background:var(--secondary); border-radius:10px; padding:10px 14px; }
+        .comment-item .c-head { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+        .comment-item .c-name { font-size:13px; font-weight:700; }
+        .comment-item .c-time { font-size:11px; color:var(--text-light); }
+        .comment-item .c-content { font-size:14px; line-height:1.7; word-break:break-all; }
+        .comment-item .c-del { margin-left:auto; background:none; border:none; color:var(--text-light); cursor:pointer; font-size:12px; }
+        .comment-item .c-del:hover { color:#e74c3c; }
+        .comment-input-box { display:flex; gap:10px; align-items:flex-start; }
+        .comment-input-box textarea { flex:1; padding:10px 14px; border:2px solid var(--border); border-radius:10px; font-size:14px; font-family:inherit; resize:vertical; min-height:44px; }
+        .comment-input-box textarea:focus { outline:none; border-color:var(--primary); }
+
+        /* 评估打分 */
+        .eval-summary-bar { display:flex; align-items:center; gap:16px; background:linear-gradient(135deg,#e8f4fd,#e8f8f0); border-radius:12px; padding:16px 20px; margin-bottom:16px; flex-wrap:wrap; }
+        .eval-summary-bar .es-score { font-size:32px; font-weight:800; color:var(--primary-dark); }
+        .eval-summary-bar .es-label { font-size:12px; color:var(--text-light); }
+        .eval-dim-list { display:flex; gap:20px; flex-wrap:wrap; }
+        .eval-dim-item { text-align:center; min-width:70px; }
+        .eval-dim-item .ed-val { font-size:18px; font-weight:700; color:var(--primary); }
+        .eval-dim-item .ed-label { font-size:11px; color:var(--text-light); }
+        .eval-card { border:1px solid var(--border); border-radius:12px; padding:14px 16px; margin-bottom:12px; }
+        .eval-card .ec-head { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+        .eval-card .ec-head .c-avatar { width:30px; height:30px; border-radius:50%; color:#fff; display:flex; align-items:center; justify-content:center; font-size:12px; font-weight:700; }
+        .eval-card .ec-scores { display:flex; gap:14px; flex-wrap:wrap; font-size:13px; color:var(--text); margin-bottom:6px; }
+        .eval-card .ec-scores b { color:var(--primary-dark); }
+        .score-slider-row { display:flex; align-items:center; gap:12px; margin-bottom:10px; }
+        .score-slider-row label { width:80px; font-size:13px; color:var(--text); flex-shrink:0; }
+        .score-slider-row input[type=range] { flex:1; }
+        .score-slider-row .sv { width:30px; text-align:center; font-weight:700; color:var(--primary); }
+        .assign-chip { display:inline-flex; align-items:center; gap:6px; background:var(--secondary); border-radius:20px; padding:4px 12px; font-size:13px; margin:2px 4px 2px 0; }
+        .assign-chip .ac-del { background:none; border:none; color:var(--text-light); cursor:pointer; font-size:14px; padding:0; }
+        .assign-chip .ac-del:hover { color:#e74c3c; }
+        .assign-chip.done { background:#e8f5e9; }
+
+        /* 建议板 */
+        .suggestion-card { background:var(--white); border-radius:var(--radius); box-shadow:var(--shadow); padding:20px 24px; margin-bottom:16px; }
+        .suggestion-card .sg-head { display:flex; align-items:flex-start; gap:14px; }
+        .suggestion-card .sg-vote { display:flex; flex-direction:column; align-items:center; gap:2px; min-width:48px; padding:8px; border-radius:10px; background:var(--secondary); cursor:pointer; user-select:none; transition:all 0.2s; }
+        .suggestion-card .sg-vote:hover { background:#e0f0e8; }
+        .suggestion-card .sg-vote.voted { background:#fff3e0; }
+        .suggestion-card .sg-vote .v-icon { font-size:18px; }
+        .suggestion-card .sg-vote .v-count { font-size:16px; font-weight:800; color:var(--primary-dark); }
+        .suggestion-card .sg-main { flex:1; }
+        .suggestion-card .sg-title { font-size:16px; font-weight:700; margin-bottom:6px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+        .suggestion-card .sg-content { font-size:14px; color:var(--text); line-height:1.8; margin-bottom:10px; white-space:pre-wrap; }
+        .suggestion-card .sg-meta { display:flex; align-items:center; gap:10px; font-size:12px; color:var(--text-light); flex-wrap:wrap; }
+        .suggestion-card .sg-meta .m-avatar { width:22px; height:22px; border-radius:50%; color:#fff; display:inline-flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; }
+        .sg-status-badge { font-size:11px; padding:2px 10px; border-radius:10px; font-weight:600; }
+        .sg-status-badge.open { background:#f5f5f5; color:#636e72; }
+        .sg-status-badge.discussing { background:#e3f2fd; color:#1565c0; }
+        .sg-status-badge.implemented { background:#e8f5e9; color:#2e7d32; }
+        .sg-status-badge.rejected { background:#ffebee; color:#c62828; }
+        .sg-comments { margin-top:14px; border-top:1px dashed var(--border); padding-top:12px; }
+        .sg-comment-item { display:flex; gap:8px; margin-bottom:8px; font-size:13px; }
+        .sg-comment-item .m-avatar { width:24px; height:24px; border-radius:50%; color:#fff; display:inline-flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; flex-shrink:0; }
+        .sg-comment-item .sgc-body { background:var(--secondary); border-radius:8px; padding:6px 12px; flex:1; }
+        .sg-actions { display:flex; gap:8px; margin-top:10px; flex-wrap:wrap; }
+
+        /* 团队动态 */
+        .activity-list { display:flex; flex-direction:column; gap:0; }
+        .activity-item { display:flex; gap:14px; position:relative; padding:0 0 20px 0; }
+        .activity-item::before { content:''; position:absolute; left:16px; top:36px; bottom:0; width:2px; background:var(--border); }
+        .activity-item:last-child::before { display:none; }
+        .activity-item .a-avatar { width:34px; height:34px; border-radius:50%; color:#fff; display:flex; align-items:center; justify-content:center; font-size:13px; font-weight:700; flex-shrink:0; z-index:1; }
+        .activity-item .a-body { flex:1; }
+        .activity-item .a-text { font-size:14px; line-height:1.6; }
+        .activity-item .a-text b { color:var(--primary-dark); }
+        .activity-item .a-time { font-size:12px; color:var(--text-light); margin-top:2px; }
+
+        /* 实时同步提示条 */
+        .live-toast { position:fixed; top:76px; right:20px; z-index:400; background:var(--primary-dark); color:#fff; padding:10px 18px; border-radius:10px; font-size:13px; box-shadow:var(--shadow); display:flex; align-items:center; gap:8px; opacity:0; transform:translateY(-10px); transition:all 0.3s; pointer-events:none; }
+        .live-toast.show { opacity:1; transform:translateY(0); }
+
+        /* ===== 登录遮罩 ===== */
+        .login-overlay {
+            position: fixed; inset: 0; z-index: 9999;
+            background: linear-gradient(135deg, #0077b3 0%, #009fe3 50%, #4ec5f1 100%);
+            display: flex; align-items: center; justify-content: center;
+            padding: 20px;
+        }
+        .login-overlay::before {
+            content: ''; position: absolute; inset: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><g fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1.5"><path d="M40 10 C40 10 20 35 20 50 C20 65 30 75 40 75 C50 75 60 65 60 50 C60 35 40 10 40 10Z"/></g></svg>');
+            background-size: 80px 80px;
+        }
+        .login-card {
+            position: relative; z-index: 1;
+            background: #fff; border-radius: 20px;
+            padding: 40px 36px; width: 100%; max-width: 380px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.25);
+            text-align: center;
+        }
+        .login-card .login-logo {
+            height: 48px; margin-bottom: 16px;
+        }
+        .login-card h2 {
+            font-size: 22px; font-weight: 800; color: #0077b3;
+            margin-bottom: 6px;
+        }
+        .login-card .login-sub {
+            font-size: 13px; color: #636e72; margin-bottom: 28px;
+        }
+        .login-card .login-input {
+            width: 100%; padding: 14px 18px; font-size: 16px;
+            border: 2px solid #dfe6e9; border-radius: 12px;
+            text-align: center; letter-spacing: 2px;
+            transition: border-color 0.2s; font-family: inherit;
+            margin-bottom: 14px;
+        }
+        .login-card .login-input:focus {
+            outline: none; border-color: #009fe3;
+        }
+        .login-card .login-btn {
+            width: 100%; padding: 14px; font-size: 16px; font-weight: 700;
+            border: none; border-radius: 12px; cursor: pointer;
+            background: linear-gradient(135deg, #009fe3, #0077b3);
+            color: #fff; transition: all 0.25s; font-family: inherit;
+        }
+        .login-card .login-btn:hover {
+            transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,159,227,0.35);
+        }
+        .login-card .login-error {
+            color: #e74c3c; font-size: 13px; margin-top: 10px;
+            display: none;
+        }
+        .login-card .login-error.show { display: block; }
+        .login-card .login-hint {
+            margin-top: 20px; font-size: 12px; color: #aaa;
+        }
+
+        /* 退出登录按钮 */
+        .logout-btn {
+            margin: 16px 24px; padding: 10px 16px;
+            background: rgba(255,255,255,0.12); color: #fff;
+            border: 1px solid rgba(255,255,255,0.25); border-radius: 10px;
+            font-size: 13px; cursor: pointer; transition: all 0.2s;
+            display: flex; align-items: center; gap: 6px; font-family: inherit;
+        }
+        .logout-btn:hover { background: rgba(255,255,255,0.22); }
+    </style>
+</head>
+<body>
+    <!-- 登录遮罩 -->
+    <div class="login-overlay" id="loginOverlay" style="display:none;">
+        <div class="login-card">
+            <img src="images/honess-logo.png" class="login-logo" alt="泓济环保" onerror="this.style.display='none'">
+            <h2>HR 管理后台</h2>
+            <p class="login-sub">泓济环保校园招聘 · 团队协作版</p>
+            <input type="text" class="login-input" id="loginUsername" style="letter-spacing:1px;"
+                   placeholder="用户名" autocomplete="username"
+                   onkeydown="if(event.key==='Enter')document.getElementById('loginPassword').focus()">
+            <input type="password" class="login-input" id="loginPassword"
+                   placeholder="密码" autocomplete="current-password"
+                   onkeydown="if(event.key==='Enter')doLogin()">
+            <button class="login-btn" onclick="doLogin()">登 录</button>
+            <div class="login-error" id="loginError">用户名或密码错误</div>
+            <p class="login-hint">仅限 HR 团队成员访问 · 账号请联系管理员开通</p>
+        </div>
+    </div>
+
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a class="navbar-brand" href="admin.html">
+                <img class="brand-logo" src="images/honess-logo.png" alt="HONESS 泓济环保">
+                <div class="brand-name">HR管理后台<small>HONESS Recruitment Admin</small></div>
+            </a>
+            <button class="navbar-toggle" aria-label="菜单" onclick="this.classList.toggle('active');document.getElementById('adminNav').classList.toggle('open')">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="navbar-links" id="adminNav">
+                <a href="index.html">← 返回官网</a>
+                <a href="admin.html" class="admin-btn active">管理后台</a>
+            </div>
+        </div>
+    </nav>
+
+    <button class="sidebar-toggle" onclick="toggleSidebar()" aria-label="菜单">☰</button>
+    <div class="sidebar-backdrop" id="sidebarBackdrop" onclick="toggleSidebar(false)"></div>
+
+    <div class="admin-layout">
+        <div class="admin-sidebar">
+            <div class="sidebar-user" id="sidebarUser">
+                <div class="su-avatar" id="suAvatar">?</div>
+                <div class="su-info">
+                    <div class="su-name" id="suName">未登录</div>
+                    <div class="su-role" id="suRole">-</div>
+                </div>
+            </div>
+            <div class="sidebar-item active" onclick="switchPage('dashboard', this)"><span class="sidebar-icon">📊</span> 仪表盘</div>
+            <div class="sidebar-item" onclick="switchPage('candidates', this)"><span class="sidebar-icon">👥</span> 候选人管理 <span class="sidebar-badge" id="pendingBadge">0</span></div>
+            <div class="sidebar-item" onclick="switchPage('jobs', this)"><span class="sidebar-icon">📋</span> 岗位管理</div>
+            <div class="sidebar-item" onclick="switchPage('upload', this)"><span class="sidebar-icon">📤</span> 导入线下简历</div>
+            <div class="sidebar-item" onclick="switchPage('mbti-match', this)"><span class="sidebar-icon">🧠</span> MBTI匹配</div>
+            <div class="sidebar-item" onclick="switchPage('interview', this)"><span class="sidebar-icon">🤖</span> AI初试 <span class="sidebar-badge" id="interviewBadge" style="display:none;">0</span></div>
+            <div class="sidebar-item" onclick="switchPage('suggestions', this)"><span class="sidebar-icon">💡</span> 建议板 <span class="sidebar-badge" id="suggestionBadge" style="display:none;">0</span></div>
+            <div class="sidebar-item" onclick="switchPage('activities', this)"><span class="sidebar-icon">⚡</span> 团队动态</div>
+            <div class="sidebar-item" onclick="switchPage('users', this)" id="usersMenuItem" style="display:none;"><span class="sidebar-icon">🔑</span> 成员管理</div>
+            <div style="margin-top:auto;padding:16px 24px;border-top:1px solid rgba(255,255,255,0.1);">
+                <button class="logout-btn" onclick="doLogout()">🔒 退出登录</button>
+            </div>
+        </div>
+
+        <div class="admin-content">
+            <!-- Dashboard -->
+            <div id="page-dashboard" class="admin-page active">
+                <h1 class="admin-page-title">📊 招聘仪表盘</h1>
+                <div class="stat-grid" id="statGrid"></div>
+                <div class="two-col">
+                    <div class="chart-card">
+                        <h3>学历分布</h3>
+                        <div class="bar-chart" id="eduChart"></div>
+                    </div>
+                    <div class="chart-card">
+                        <h3>意向方向分布</h3>
+                        <div class="bar-chart" id="catChart"></div>
+                    </div>
+                </div>
+                <div class="chart-card">
+                    <h3>MBTI性格类型分布</h3>
+                    <div class="bar-chart" id="mbtiChart"></div>
+                </div>
+            </div>
+
+            <!-- Candidates -->
+            <div id="page-candidates" class="admin-page">
+                <h1 class="admin-page-title">👥 候选人管理</h1>
+                <div class="filter-bar">
+                    <input type="text" class="search-input" id="searchKeyword" placeholder="搜索姓名/手机/邮箱/学校/专业..." oninput="loadCandidates()">
+                    <select id="filterEdu" onchange="loadCandidates()">
+                        <option value="">全部学历</option>
+                        <option value="bachelor">本科</option>
+                        <option value="master">硕士</option>
+                        <option value="phd">博士</option>
+                        <option value="postdoc">博士后</option>
+                    </select>
+                    <select id="filterStatus" onchange="loadCandidates()">
+                        <option value="">全部状态</option>
+                        <option value="pending">待筛选</option>
+                        <option value="interview">面试中</option>
+                        <option value="offered">已录用</option>
+                        <option value="rejected">已淘汰</option>
+                    </select>
+                    <select id="filterCat" onchange="loadCandidates()">
+                        <option value="">全部方向</option>
+                        <option value="tech">技术研发</option>
+                        <option value="project">项目工程</option>
+                        <option value="business">商务市场</option>
+                        <option value="operations">运营服务</option>
+                        <option value="support">职能支持</option>
+                    </select>
+                    <select id="filterMbti" onchange="loadCandidates()">
+                        <option value="">全部MBTI</option>
+                        <option value="INTJ">INTJ</option><option value="INTP">INTP</option>
+                        <option value="ENTJ">ENTJ</option><option value="ENTP">ENTP</option>
+                        <option value="INFJ">INFJ</option><option value="INFP">INFP</option>
+                        <option value="ENFJ">ENFJ</option><option value="ENFP">ENFP</option>
+                        <option value="ISTJ">ISTJ</option><option value="ISFJ">ISFJ</option>
+                        <option value="ESTJ">ESTJ</option><option value="ESFJ">ESFJ</option>
+                        <option value="ISTP">ISTP</option><option value="ISFP">ISFP</option>
+                        <option value="ESTP">ESTP</option><option value="ESFP">ESFP</option>
+                    </select>
+                    <select id="filterBatch" onchange="loadCandidates()">
+                        <option value="">全部批次</option>
+                    </select>
+                    <select id="filterNativePlace" onchange="loadCandidates()">
+                        <option value="">全部籍贯</option>
+                    </select>
+                    <select id="sortField" onchange="loadCandidates()">
+                        <option value="date">按投递时间</option>
+                        <option value="education">按学历</option>
+                    </select>
+                </div>
+                <div class="candidate-table">
+                    <table class="data-table">
+                        <thead>
+                            <tr>
+                                <th>编号</th><th>姓名</th><th>学历</th><th>学校</th><th>专业</th><th>籍贯</th>
+                                <th>意向方向</th><th>MBTI</th><th>推荐岗位</th><th>状态</th><th>投递时间</th><th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody id="candidateTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- Jobs Management -->
+            <div id="page-jobs" class="admin-page">
+                <div class="job-page-head" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px;">
+                    <h1 class="admin-page-title" style="margin:0;">📋 岗位管理</h1>
+                    <button class="btn btn-primary" onclick="showJobForm()">+ 新增岗位</button>
+                </div>
+                <div class="job-mgmt-table">
+                    <table class="data-table">
+                        <thead>
+                            <tr><th>岗位名称</th><th>方向</th><th>最低学历</th><th>地点</th><th>招聘人数</th><th>薪资</th><th>状态</th><th>操作</th></tr>
+                        </thead>
+                        <tbody id="jobTableBody"></tbody>
+                    </table>
+                </div>
+                <!-- 竖屏卡片列表 -->
+                <div class="job-cards" id="jobCardList"></div>
+            </div>
+
+            <!-- Upload / Import Paper Resume -->
+            <div id="page-upload" class="admin-page">
+                <h1 class="admin-page-title">📤 导入线下简历</h1>
+                <div class="upload-tabs">
+                    <button class="upload-tab active" onclick="switchUploadTab('scan', this)">📷 批量上传扫描件</button>
+                    <button class="upload-tab" onclick="switchUploadTab('manual', this)">✍️ 手动录入信息</button>
+                </div>
+
+                <!-- 批量上传扫描件 -->
+                <div id="uploadTab-scan" class="upload-tab-content active">
+                    <div class="card">
+                        <p style="font-size: 15px; color: var(--text-light); margin-bottom: 20px; line-height: 1.8;">
+                            上传校招现场扫描/拍摄的纸质简历。<strong style="color:var(--primary-dark);">PDF</strong> 可自动解析关键信息；<strong style="color:var(--primary-dark);">图片</strong>（PNG/JPG）仅存档，需到「手动录入」补充信息。<br>
+                            支持一次选择多个文件批量上传，解析后可在「候选人管理」中查看和编辑。
+                        </p>
+                        <div class="upload-paper-zone" id="paperDropZone" onclick="document.getElementById('paperResumeFile').click()">
+                            <div class="upload-icon">📄</div>
+                            <h3 style="color: var(--primary-dark); margin-bottom: 6px;">点击或拖拽上传（支持多文件）</h3>
+                            <p style="font-size: 13px; color: var(--text-light);">支持 PDF / PNG / JPG，单次可批量上传</p>
+                            <input type="file" id="paperResumeFile" accept=".pdf,.txt,.png,.jpg,.jpeg" multiple style="display:none" onchange="uploadPaperResumeBatch(event)">
+                        </div>
+                        <div id="uploadResult"></div>
+                    </div>
+                </div>
+
+                <!-- 手动录入信息 -->
+                <div id="uploadTab-manual" class="upload-tab-content">
+                    <div class="card">
+                        <p style="font-size: 14px; color: var(--text-light); margin-bottom: 20px; line-height: 1.8;">
+                            对于纸质简历无电子版，或上传图片后需补充信息的情况，可直接在此手动录入候选人信息。<br>
+                            <strong style="color:var(--primary-dark);">带 * 为必填</strong>，保存后自动生成岗位推荐，可在「候选人管理」查看。
+                        </p>
+                        <div class="form-group"><label>姓名 <span class="required">*</span></label><input type="text" id="mc_name" placeholder="候选人姓名"></div>
+                        <div class="form-row">
+                            <div class="form-group"><label>手机</label><input type="text" id="mc_phone" placeholder="11位手机号"></div>
+                            <div class="form-group"><label>邮箱</label><input type="email" id="mc_email" placeholder="邮箱地址"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>性别</label>
+                                <select id="mc_gender">
+                                    <option value="">请选择</option>
+                                    <option value="男">男</option>
+                                    <option value="女">女</option>
+                                </select>
+                            </div>
+                            <div class="form-group"><label>学历 <span class="required">*</span></label>
+                                <select id="mc_education">
+                                    <option value="">请选择</option>
+                                    <option value="bachelor">本科</option>
+                                    <option value="master">硕士</option>
+                                    <option value="phd">博士</option>
+                                    <option value="postdoc">博士后</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>学校</label><input type="text" id="mc_school" placeholder="毕业院校"></div>
+                            <div class="form-group"><label>专业</label><input type="text" id="mc_major" placeholder="所学专业"></div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group"><label>毕业年份</label><input type="number" id="mc_graduation_year" placeholder="如 2026" min="2020" max="2030"></div>
+                            <div class="form-group"><label>意向方向</label>
+                                <select id="mc_preferred_category">
+                                    <option value="">请选择</option>
+                                    <option value="tech">技术研发</option>
+                                    <option value="project">项目工程</option>
+                                    <option value="business">商务市场</option>
+                                    <option value="operations">运营服务</option>
+                                    <option value="support">职能支持</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-group"><label>技能标签</label><input type="text" id="mc_skills" placeholder="多个技能用逗号分隔，如：水处理,CAD,Python"></div>
+                        <div class="form-group"><label>实习/工作经历</label><textarea id="mc_experience" rows="3" placeholder="可填写实习单位、岗位、时间等"></textarea></div>
+                        <div class="form-group"><label>项目经历</label><textarea id="mc_projects" rows="3" placeholder="可填写科研项目、毕业设计等"></textarea></div>
+                        <div class="form-group"><label>自我介绍</label><textarea id="mc_self_intro" rows="3" placeholder="简短自我介绍"></textarea></div>
+                        <div style="display:flex; gap:12px; margin-top:8px;">
+                            <button class="btn btn-primary" onclick="saveManualCandidate()">💾 保存候选人</button>
+                            <button class="btn btn-outline" onclick="clearManualForm()">清空</button>
+                        </div>
+                        <div id="manualResult" style="margin-top:16px;"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- MBTI Match -->
+            <div id="page-mbti-match" class="admin-page">
+                <h1 class="admin-page-title">🧠 MBTI岗位匹配</h1>
+                <div class="card" style="margin-bottom: 20px;">
+                    <p style="font-size: 14px; color: var(--text-light); line-height: 1.8;">
+                        查看各MBTI性格类型候选人的分布情况，以及各岗位方向的MBTI适配度。<br>
+                        <strong style="color: var(--primary-dark);">使用原则：</strong>MBTI仅作为辅助参考维度，不作为淘汰/录用的唯一依据。推荐权重不超过15%。
+                    </p>
+                </div>
+                <div class="chart-card">
+                    <h3>各岗位方向 MBTI 适配热力图</h3>
+                    <div id="mbtiHeatmap" style="overflow-x:auto;"></div>
+                </div>
+                <div class="chart-card">
+                    <h3>已完成MBTI测试的候选人</h3>
+                    <div class="candidate-table" style="box-shadow:none;">
+                        <table class="data-table">
+                            <thead><tr><th>姓名</th><th>MBTI类型</th><th>意向方向</th><th>匹配度</th><th>推荐岗位</th><th>操作</th></tr></thead>
+                            <tbody id="mbtiCandidateBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Suggestions Board -->
+            <div id="page-suggestions" class="admin-page">
+                <div class="job-page-head" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:10px;">
+                    <h1 class="admin-page-title" style="margin:0;">💡 建议板</h1>
+                    <button class="btn btn-primary" onclick="showSuggestionForm()">+ 提交建议</button>
+                </div>
+                <div class="card" style="margin-bottom:20px;">
+                    <p style="font-size:14px;color:var(--text-light);line-height:1.8;">
+                        团队所有成员（包括新加入的）都可以在这里对校招项目提出修改建议——岗位设置、网站功能、招聘流程等。<br>
+                        点赞表示支持，管理员可将建议标记为「已采纳」。
+                    </p>
+                </div>
+                <div class="suggestion-filter" style="margin-bottom:16px;display:flex;gap:8px;flex-wrap:wrap;">
+                    <button class="btn btn-sm btn-primary" onclick="filterSuggestions('', this)">全部</button>
+                    <button class="btn btn-sm btn-outline" onclick="filterSuggestions('open', this)">待讨论</button>
+                    <button class="btn btn-sm btn-outline" onclick="filterSuggestions('discussing', this)">讨论中</button>
+                    <button class="btn btn-sm btn-outline" onclick="filterSuggestions('implemented', this)">已采纳</button>
+                    <button class="btn btn-sm btn-outline" onclick="filterSuggestions('rejected', this)">未采纳</button>
+                </div>
+                <div id="suggestionList"></div>
+            </div>
+
+            <!-- Activities -->
+            <div id="page-activities" class="admin-page">
+                <h1 class="admin-page-title">⚡ 团队动态</h1>
+                <div class="card" style="margin-bottom:20px;">
+                    <p style="font-size:14px;color:var(--text-light);line-height:1.8;">
+                        团队成员的最近操作记录：状态流转、评论、评估、建议等。数据变更时本页面实时刷新。
+                    </p>
+                </div>
+                <div class="chart-card">
+                    <div id="activityList" class="activity-list"></div>
+                </div>
+            </div>
+
+            <!-- Users Management -->
+            <div id="page-users" class="admin-page">
+                <div class="job-page-head" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:24px; flex-wrap:wrap; gap:10px;">
+                    <h1 class="admin-page-title" style="margin:0;">🔑 成员管理</h1>
+                    <button class="btn btn-primary" onclick="showUserForm()">+ 添加成员</button>
+                </div>
+                <div class="candidate-table">
+                    <table class="data-table">
+                        <thead><tr><th>成员</th><th>用户名</th><th>角色</th><th>加入时间</th><th>操作</th></tr></thead>
+                        <tbody id="userTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <!-- AI 初试管理 -->
+            <div id="page-interview" class="admin-page">
+                <h1 class="admin-page-title">🤖 AI 初试管理</h1>
+                <div class="card" style="margin-bottom:20px;">
+                    <p style="font-size:13.5px;color:var(--text-light);line-height:1.8;margin:0;">
+                        候选人投递后自助预约 AI 初试时段，系统自动记录<b>是否准时参加</b>并纳入量化评估：
+                        准时(≤+15min)=10分 · 迟到15-30min=6分 · 迟到&gt;30min=3分 · 缺席=0分。
+                    </p>
+                </div>
+
+                <!-- 统计 -->
+                <div class="stat-grid" id="ivStatGrid" style="margin-bottom:20px;">
+                    <div class="stat-card"><div class="stat-icon">📅</div><div class="stat-num" id="ivTotal">0</div><div class="stat-label">预约总数</div></div>
+                    <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-num" id="ivCompleted">0</div><div class="stat-label">已完成</div></div>
+                    <div class="stat-card"><div class="stat-icon">⛔</div><div class="stat-num" id="ivAbsent">0</div><div class="stat-label">缺席</div></div>
+                    <div class="stat-card"><div class="stat-icon">⏱</div><div class="stat-num" id="ivPunctRate">0%</div><div class="stat-label">准时率</div></div>
+                    <div class="stat-card"><div class="stat-icon">📊</div><div class="stat-num" id="ivAvgOverall">0</div><div class="stat-label">平均初试分</div></div>
+                </div>
+
+                <!-- 生成时段 -->
+                <div class="chart-card" style="margin-bottom:20px;">
+                    <h3 style="margin-bottom:14px;">🕐 生成面试时段（工作日）</h3>
+                    <div class="form-row" style="grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:12px;">
+                        <div class="form-group" style="margin:0;">
+                            <label>起始日期</label>
+                            <input type="date" id="ivGenStart">
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label>生成天数</label>
+                            <input type="number" id="ivGenDays" value="7" min="1" max="30">
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label>开始时间</label>
+                            <input type="number" id="ivGenStartHour" value="9" min="0" max="23">
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label>结束时间</label>
+                            <input type="number" id="ivGenEndHour" value="18" min="1" max="24">
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label>每段分钟</label>
+                            <input type="number" id="ivGenMinutes" value="30" min="15" step="5">
+                        </div>
+                        <div class="form-group" style="margin:0;">
+                            <label>每段容量</label>
+                            <input type="number" id="ivGenCapacity" value="3" min="1">
+                        </div>
+                        <div style="display:flex;align-items:flex-end;">
+                            <button class="btn btn-primary" onclick="ivGenerateSlots()">⚡ 生成</button>
+                        </div>
+                    </div>
+                    <div style="font-size:12px;color:var(--text-light);margin-top:10px;">仅生成周一~周五的时段；已存在的时段自动跳过，可重复执行。</div>
+                </div>
+
+                <!-- 时段列表 -->
+                <div class="chart-card" style="margin-bottom:20px;">
+                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+                        <h3 style="margin:0;">📋 时段列表</h3>
+                        <button class="btn btn-sm btn-secondary" onclick="ivLoadSlots()">🔄 刷新</button>
+                    </div>
+                    <div class="candidate-table" style="overflow-x:auto;">
+                        <table class="data-table" style="font-size:13px;">
+                            <thead><tr><th>日期</th><th>时段</th><th>容量</th><th>已约</th><th>状态</th><th>操作</th></tr></thead>
+                            <tbody id="ivSlotBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 预约名单 -->
+                <div class="chart-card">
+                    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-bottom:14px;">
+                        <h3 style="margin:0;">👥 预约 / 面试记录</h3>
+                        <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                            <input type="text" class="search-input" id="ivKeyword" placeholder="搜索姓名/手机/岗位" style="width:180px;" onkeydown="if(event.key==='Enter')ivLoadSessions()">
+                            <select id="ivStatusFilter" onchange="ivLoadSessions()">
+                                <option value="">全部状态</option>
+                                <option value="scheduled">已预约</option>
+                                <option value="in_progress">面试中</option>
+                                <option value="completed">已完成</option>
+                                <option value="absent">缺席</option>
+                                <option value="cancelled">已取消</option>
+                            </select>
+                            <button class="btn btn-sm btn-secondary" onclick="ivLoadSessions()">查询</button>
+                        </div>
+                    </div>
+                    <div class="candidate-table" style="overflow-x:auto;">
+                        <table class="data-table" style="font-size:13px;">
+                            <thead><tr>
+                                <th>候选人</th><th>意向岗位</th><th>面试时间</th><th>进入时间</th><th>状态</th>
+                                <th>准时评估</th><th>初试分</th><th>操作</th>
+                            </tr></thead>
+                            <tbody id="ivSessionBody"></tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- 面试详情弹窗 -->
+                <div class="detail-overlay" id="ivDetailOverlay" style="display:none;" onclick="if(event.target===this)ivCloseDetail()">
+                    <div class="detail-modal" id="ivDetailModal" style="max-width:720px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Candidate Detail Modal -->
+    <div class="detail-overlay" id="candidateDetailOverlay" onclick="if(event.target===this)closeDetail()">
+        <div class="detail-modal" id="candidateDetailModal"></div>
+    </div>
+
+    <!-- Job Form Modal -->
+    <div class="detail-overlay" id="jobFormOverlay" onclick="if(event.target===this)closeJobForm()">
+        <div class="form-modal" id="jobFormModal"></div>
+    </div>
+
+    <!-- Resume Preview Modal -->
+    <div class="resume-preview-overlay" id="resumePreviewOverlay" onclick="if(event.target===this)closeResumePreview()">
+        <div class="resume-preview-modal">
+            <div class="resume-preview-header">
+                <h3 id="resumePreviewTitle">简历预览</h3>
+                <div style="display:flex;gap:8px;">
+                    <button class="btn btn-sm btn-outline" onclick="closeResumePreview()">关闭</button>
+                </div>
+            </div>
+            <div class="resume-preview-body">
+                <iframe id="resumePreviewFrame" src=""></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Suggestion Form Modal -->
+    <div class="detail-overlay" id="suggestionFormOverlay" onclick="if(event.target===this)closeSuggestionForm()">
+        <div class="form-modal" id="suggestionFormModal"></div>
+    </div>
+
+    <!-- User Form Modal -->
+    <div class="detail-overlay" id="userFormOverlay" onclick="if(event.target===this)closeUserForm()">
+        <div class="form-modal" id="userFormModal"></div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay" style="display:none;">
+        <div class="spinner"></div>
+        <p id="loadingText">加载中...</p>
+    </div>
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // ===== 多用户登录（session 认证） =====
+        let currentUser = null;
+        const loginOverlay = document.getElementById('loginOverlay');
+        const loginError = document.getElementById('loginError');
+
+        // 页面加载时检查登录状态
+        (async function checkAuth() {
+            try {
+                const r = await fetch('/api/auth/me');
+                if (r.ok) {
+                    const data = await r.json();
+                    onLoginSuccess(data.user);
+                } else {
+                    showLogin();
+                }
+            } catch (e) {
+                showLogin();
+            }
+        })();
+
+        function showLogin() {
+            loginOverlay.style.display = 'flex';
+            document.getElementById('loginUsername').focus();
+        }
+
+        async function doLogin() {
+            const username = document.getElementById('loginUsername').value.trim();
+            const password = document.getElementById('loginPassword').value;
+            if (!username || !password) { showToast('请输入用户名和密码'); return; }
+            try {
+                const r = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password }),
+                });
+                const data = await r.json();
+                if (!r.ok) {
+                    loginError.textContent = data.error || '登录失败';
+                    loginError.classList.add('show');
+                    document.getElementById('loginPassword').value = '';
+                    setTimeout(() => loginError.classList.remove('show'), 2500);
+                    return;
+                }
+                onLoginSuccess(data.user);
+            } catch (e) {
+                showToast('网络错误，请重试');
+            }
+        }
+
+        function onLoginSuccess(user) {
+            currentUser = user;
+            loginOverlay.style.display = 'none';
+            // 更新侧边栏用户信息
+            document.getElementById('suName').textContent = user.name;
+            const roleLabels = { admin: '管理员', hr: 'HR', interviewer: '面试官' };
+            document.getElementById('suRole').textContent = roleLabels[user.role] || user.role;
+            const avatar = document.getElementById('suAvatar');
+            avatar.textContent = user.name.charAt(0);
+            avatar.style.background = user.avatar_color || '#0077b3';
+            // 管理员才显示成员管理菜单
+            document.getElementById('usersMenuItem').style.display = user.role === 'admin' ? 'flex' : 'none';
+            initSSE();
+            loadStats();
+            initNativePlaceFilter();
+        }
+
+        async function doLogout() {
+            try { await fetch('/api/auth/logout', { method: 'POST' }); } catch (e) {}
+            currentUser = null;
+            if (sseSource) { try { sseSource.close(); } catch (e) {} sseSource = null; }
+            loginOverlay.style.display = 'flex';
+            document.getElementById('loginPassword').value = '';
+            document.getElementById('loginUsername').focus();
+        }
+
+        // ===== SSE 实时同步 =====
+        let sseSource = null;
+        let pollTimer = null;
+
+        // 是否云模式（Supabase 已配置）
+        function isCloudMode() {
+            const cfg = window.SUPABASE_CONFIG || {};
+            return !!(cfg.url && cfg.url !== 'YOUR_SUPABASE_URL' && cfg.anonKey);
+        }
+
+        function initSSE() {
+            if (sseSource || pollTimer) return;
+            // 云模式：静态托管无后端 SSE，改用轮询
+            if (isCloudMode()) {
+                initPolling();
+                return;
+            }
+            sseSource = new EventSource('/api/collab/events');
+            sseSource.onmessage = (event) => {
+                try {
+                    const msg = JSON.parse(event.data);
+                    handleSSEMessage(msg);
+                } catch (e) { /* ignore */ }
+            };
+            sseSource.onerror = () => {
+                // 连接断开时自动重连（EventSource 默认会重试）
+            };
+        }
+
+        // 云模式轮询：每 10 秒刷新当前可见数据，近似实时
+        function initPolling() {
+            if (pollTimer) return;
+            pollTimer = setInterval(() => {
+                try {
+                    if (document.getElementById('page-candidates').classList.contains('active')) loadCandidates();
+                    if (document.getElementById('page-dashboard').classList.contains('active')) loadStats();
+                    if (document.getElementById('page-activities').classList.contains('active')) loadActivities();
+                } catch (e) { /* ignore */ }
+            }, 10000);
+        }
+
+        let liveToastTimer = null;
+        function showLiveToast(text) {
+            let t = document.getElementById('liveToast');
+            if (!t) {
+                t = document.createElement('div');
+                t.className = 'live-toast';
+                t.id = 'liveToast';
+                document.body.appendChild(t);
+            }
+            t.textContent = '⚡ ' + text;
+            t.classList.add('show');
+            clearTimeout(liveToastTimer);
+            liveToastTimer = setTimeout(() => t.classList.remove('show'), 3500);
+        }
+
+        function handleSSEMessage(msg) {
+            if (msg.type === 'connected') return;
+            if (msg.type === 'activity') {
+                // 刷新团队动态页（若正在显示）
+                if (document.getElementById('page-activities').classList.contains('active')) loadActivities();
+                return;
+            }
+            if (msg.type === 'candidate_update') {
+                const d = msg.data || {};
+                const actions = {
+                    candidate_new: `新候选人投递：${d.user_name || ''}`,
+                    status_changed: `${d.user_name || '有人'}更新了候选人状态`,
+                    comment_added: `${d.user_name || '有人'}添加了评论`,
+                    evaluation_added: `${d.user_name || '有人'}提交了评估`,
+                    assignment_added: `${d.user_name || '有人'}分配了评估任务`,
+                    candidate_deleted: `${d.user_name || '有人'}删除了候选人`,
+                };
+                showLiveToast(actions[d.action] || '候选人数据有更新');
+                // 刷新当前页面数据
+                if (document.getElementById('page-candidates').classList.contains('active')) loadCandidates();
+                if (document.getElementById('page-dashboard').classList.contains('active')) loadStats();
+                // 若详情弹窗打开且是同一候选人，刷新详情
+                if (document.getElementById('candidateDetailOverlay').classList.contains('show') && currentDetailCandidateId) {
+                    const idNum = parseInt(d.candidate_id);
+                    if (idNum === currentDetailCandidateId && d.action !== 'candidate_deleted') {
+                        refreshDetailCollab(idNum);
+                    } else if (d.action === 'candidate_deleted' && idNum === currentDetailCandidateId) {
+                        closeDetail();
+                    }
+                }
+            }
+        }
+
+        const eduLabels = { bachelor: '本科', master: '硕士', phd: '博士', postdoc: '博士后' };
+        const eduColors = { bachelor: '#e3f2fd', master: '#e8f5e9', phd: '#fff3e0', postdoc: '#f3e5f5' };
+        const eduTextColors = { bachelor: '#1565c0', master: '#2e7d32', phd: '#e65100', postdoc: '#7b1fa2' };
+        const catLabels = { tech: '技术研发', project: '项目工程', business: '商务市场', operations: '运营服务', support: '职能支持' };
+        const statusLabels = { pending: '待筛选', interview: '面试中', offered: '已录用', rejected: '已淘汰' };
+        const statusColors = { pending: 'gray', interview: 'blue', offered: 'green', rejected: 'red' };
+
+        function toggleSidebar(open) {
+            const sb = document.querySelector('.admin-sidebar');
+            const bd = document.getElementById('sidebarBackdrop');
+            const isOpen = open === undefined ? !sb.classList.contains('open') : open;
+            if (isOpen) { sb.classList.add('open'); bd.classList.add('show'); }
+            else { sb.classList.remove('open'); bd.classList.remove('show'); }
+        }
+
+        function switchPage(page, el) {
+            document.querySelectorAll('.admin-page').forEach(p => p.classList.remove('active'));
+            document.getElementById('page-' + page).classList.add('active');
+            document.querySelectorAll('.sidebar-item').forEach(s => s.classList.remove('active'));
+            el.classList.add('active');
+            if (page === 'dashboard') loadStats();
+            if (page === 'candidates') loadCandidates();
+            if (page === 'jobs') loadJobs();
+            if (page === 'mbti-match') loadMbtiMatch();
+            if (page === 'suggestions') loadSuggestions();
+            if (page === 'activities') loadActivities();
+            if (page === 'users') loadUsers();
+            if (page === 'interview') loadInterviewPage();
+            // 移动端选择后自动收起侧边栏
+            if (window.innerWidth <= 768) toggleSidebar(false);
+        }
+
+        function showLoading(text) { document.getElementById('loadingText').textContent = text; document.getElementById('loadingOverlay').style.display = 'flex'; }
+        function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
+        function showToast(msg) { const t = document.getElementById('toast'); t.textContent = msg; t.classList.add('show'); setTimeout(() => t.classList.remove('show'), 3000); }
+
+        // ===== Dashboard =====
+        function loadStats() {
+            fetch('/api/admin/stats').then(r => r.json()).then(s => {
+                document.getElementById('pendingBadge').textContent = s.pendingReview;
+                document.getElementById('statGrid').innerHTML = `
+                    <div class="stat-card"><div class="stat-icon">👥</div><div class="stat-num">${s.totalCandidates}</div><div class="stat-label">总候选人</div></div>
+                    <div class="stat-card"><div class="stat-icon">⏳</div><div class="stat-num">${s.pendingReview}</div><div class="stat-label">待筛选</div></div>
+                    <div class="stat-card"><div class="stat-icon">🎯</div><div class="stat-num">${s.interviewed}</div><div class="stat-label">面试中</div></div>
+                    <div class="stat-card"><div class="stat-icon">✅</div><div class="stat-num">${s.offered}</div><div class="stat-label">已录用</div></div>
+                `;
+                renderBarChart('eduChart', s.byEducation, eduLabels);
+                renderBarChart('catChart', s.byCategory, catLabels);
+                renderBarChart('mbtiChart', s.byMbti, {}, 'mbti_type');
+            });
+        }
+
+        function renderBarChart(id, data, labels, keyField) {
+            const el = document.getElementById(id);
+            if (!data || data.length === 0) { el.innerHTML = '<p style="color:var(--text-light);font-size:14px;">暂无数据</p>'; return; }
+            const max = Math.max(...data.map(d => d.count));
+            el.innerHTML = data.map(d => {
+                const label = labels[d.education || d.preferred_category || d[keyField]] || d.education || d.preferred_category || d[keyField] || '未知';
+                const pct = (d.count / max * 100).toFixed(0);
+                return `<div class="bar-row"><div class="bar-label">${label}</div><div class="bar-track"><div class="bar-fill" style="width:${pct}%">${d.count}</div></div></div>`;
+            }).join('');
+        }
+
+        // 根据投递时间判断批次标签（春招3-6月、秋招9-12月）
+        function getBatchLabel(appliedAt) {
+            if (!appliedAt) return '';
+            const d = new Date(String(appliedAt).replace(' ', 'T'));
+            if (isNaN(d.getTime())) return '';
+            const year = d.getFullYear();
+            const month = d.getMonth() + 1;
+            if (month >= 3 && month <= 6) return year + '春招';
+            if (month >= 9 && month <= 12) return year + '秋招';
+            return '';
+        }
+
+        // ===== 候选人管理 =====
+        // 动态生成投递批次选项（春招3-6月、秋招9-12月），按时间倒序
+        (function initBatchFilter() {
+            const now = new Date();
+            const curYear = now.getFullYear();
+            const select = document.getElementById('filterBatch');
+            const batches = [];
+            // 生成 前一年秋招 → 当年春招 → 当年秋招 → 次年春招，按时间倒序排列
+            for (let y = curYear + 1; y >= curYear - 1; y--) {
+                if (y <= curYear) batches.push({ value: y + '-fall', label: y + '秋招' });
+                if (y >= curYear) batches.push({ value: y + '-spring', label: y + '春招' });
+            }
+            // 去重并按起始时间倒序
+            const seen = new Set();
+            const sorted = batches.filter(b => {
+                if (seen.has(b.value)) return false;
+                seen.add(b.value); return true;
+            }).sort((a, b) => b.value.localeCompare(a.value));
+            sorted.forEach(b => {
+                const opt = document.createElement('option');
+                opt.value = b.value; opt.textContent = b.label;
+                select.appendChild(opt);
+            });
+        })();
+
+        // 动态填充籍贯筛选选项（从已有候选人数据中提取不重复值）
+        function initNativePlaceFilter() {
+            fetch('/api/admin/candidates').then(r => { if (!r.ok) throw new Error('unauthorized'); return r.json(); }).then(candidates => {
+                const select = document.getElementById('filterNativePlace');
+                if (select.options.length > 1) return; // 已填充过
+                const places = [...new Set(candidates.map(c => c.native_place).filter(Boolean))].sort((a,b) => a.localeCompare(b, 'zh'));
+                places.forEach(p => {
+                    const opt = document.createElement('option');
+                    opt.value = p; opt.textContent = p;
+                    select.appendChild(opt);
+                });
+            }).catch(() => {});
+        }
+
+        function loadCandidates() {
+            const params = new URLSearchParams();
+            const kw = document.getElementById('searchKeyword').value;
+            const edu = document.getElementById('filterEdu').value;
+            const status = document.getElementById('filterStatus').value;
+            const cat = document.getElementById('filterCat').value;
+            const mbti = document.getElementById('filterMbti').value;
+            const sort = document.getElementById('sortField').value;
+            const batch = document.getElementById('filterBatch').value;
+            const np = document.getElementById('filterNativePlace').value;
+            if (kw) params.set('keyword', kw);
+            if (edu) params.set('education', edu);
+            if (status) params.set('status', status);
+            if (cat) params.set('category', cat);
+            if (mbti) params.set('mbti_type', mbti);
+            if (batch) params.set('batch', batch);
+            if (np) params.set('native_place', np);
+            if (sort) params.set('sort', sort);
+
+            fetch('/api/admin/candidates?' + params).then(r => r.json()).then(candidates => {
+                const tbody = document.getElementById('candidateTableBody');
+                if (candidates.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="12" style="text-align:center;padding:40px;color:var(--text-light);">暂无候选人数据</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = candidates.map(c => {
+                    const edu = c.education || '';
+                    const eduStyle = edu ? `background:${eduColors[edu]};color:${eduTextColors[edu]}` : '';
+                    const mbtiBadge = c.mbti_type ? `<span class="mbti-badge">${c.mbti_type}</span>` : '<span style="color:var(--text-light);font-size:12px;">未测试</span>';
+                    const statusBadge = `<span class="badge badge-${statusColors[c.status] || 'gray'}">${statusLabels[c.status] || c.status}</span>`;
+                    const recScore = c.rec_scores ? c.rec_scores.split(',').map(Number).sort((a,b)=>b-a)[0] : null;
+                    const recBadge = recScore !== null ? `<span class="match-score ${recScore>=60?'high':recScore>=40?'mid':'low'}">${recScore}%</span>` : '<span style="color:var(--text-light);font-size:12px;">-</span>';
+                    const batchLabel = getBatchLabel(c.applied_at);
+                    return `<tr onclick="showCandidateDetail(${c.id})">
+                        <td style="font-size:12px;color:var(--text-light);">HJ-${String(c.id).padStart(6,'0')}</td>
+                        <td style="font-weight:600;">${c.name}</td>
+                        <td>${edu ? `<span class="edu-badge" style="${eduStyle}">${eduLabels[edu]}</span>` : '-'}</td>
+                        <td>${c.school || '-'}</td>
+                        <td>${c.major || '-'}</td>
+                        <td style="font-size:13px;">${c.native_place || '-'}</td>
+                        <td>${c.preferred_category ? catLabels[c.preferred_category] || '-' : '-'}</td>
+                        <td>${mbtiBadge}</td>
+                        <td>${recBadge}</td>
+                        <td>${statusBadge}</td>
+                        <td style="font-size:12px;color:var(--text-light);">${c.applied_at ? c.applied_at.substring(0,16) : '-'}${batchLabel ? `<span class="batch-badge">${batchLabel}</span>` : ''}</td>
+                        <td onclick="event.stopPropagation()"><button class="btn btn-sm btn-outline" onclick="showCandidateDetail(${c.id})">查看</button></td>
+                    </tr>`;
+                }).join('');
+            });
+        }
+
+        function showCandidateDetail(id) {
+            fetch('/api/admin/candidates/' + id).then(r => r.json()).then(c => {
+                const edu = c.education || '';
+                const eduStyle = edu ? `background:${eduColors[edu]};color:${eduTextColors[edu]}` : '';
+                const skills = (c.skills || []).map(s => `<span class="tag">${s}</span>`).join('');
+                const recs = (c.recommendations || []).map(r => {
+                    const scoreCls = r.match_score >= 60 ? 'high' : r.match_score >= 40 ? 'mid' : 'low';
+                    const fitBadge = r.mbti_fit ? `<span class="badge badge-${r.mbti_fit==='best'?'green':r.mbti_fit==='good'?'blue':r.mbti_fit==='watch'?'orange':'gray'}" style="font-size:11px;">MBTI:${r.mbti_fit}</span>` : '';
+                    return `<div class="rec-item">
+                        <div class="rec-score ${scoreCls}">${r.match_score}%</div>
+                        <div class="rec-info">
+                            <div class="rec-title">${r.job_title} ${fitBadge}</div>
+                            <div class="rec-reason">${r.match_reasons || ''}</div>
+                        </div>
+                    </div>`;
+                }).join('');
+
+                const mbtiScores = c.mbti_scores || {};
+                const s = mbtiScores;
+                const mbtiSection = c.mbti_type ? `
+                    <div class="detail-section">
+                        <h4>🧠 MBTI性格测试报告</h4>
+                        <div style="display:flex;align-items:center;gap:16px;margin-bottom:16px;">
+                            <span class="mbti-badge" style="font-size:18px;padding:8px 16px;">${c.mbti_type}${s.identity ? '-'+s.identity : ''}</span>
+                            <span style="font-size:14px;color:var(--text-light);">完成时间：${c.mbti_completed_at || '-'}</span>
+                        </div>
+                        ${(() => {
+                            const dims = [
+                                { name:'认知方向', left:'外向(E)', right:'内向(I)', lv:s.E||0, rv:s.I||0, cls:'ei' },
+                                { name:'信息感知', left:'务实(S)', right:'创新(N)', lv:s.S||0, rv:s.N||0, cls:'sn' },
+                                { name:'决策判断', left:'理性(T)', right:'价值(F)', lv:s.T||0, rv:s.F||0, cls:'tf' },
+                                { name:'处事方式', left:'计划(J)', right:'灵活(P)', lv:s.J||0, rv:s.P||0, cls:'jp' },
+                                { name:'抗压风格', left:'稳健(A)', right:'精进(T)', lv:s.A||0, rv:s.Tu||0, cls:'at' },
+                            ];
+                            return dims.map(d => {
+                                const total = d.lv + d.rv || 1;
+                                const lp = Math.round(d.lv/total*100);
+                                const rp = Math.round(d.rv/total*100);
+                                const dom = d.lv >= d.rv ? d.left : d.right;
+                                const domPct = Math.max(lp, rp);
+                                return `<div class="mbti-dim-bar">
+                                    <div class="mbti-dim-bar-header"><span class="dim-label">${d.name}</span><span class="dim-value">${dom} · ${domPct}%</span></div>
+                                    <div class="mbti-dim-bar-track"><div class="mbti-dim-bar-fill ${d.cls}" style="width:${lp}%"></div></div>
+                                    <div class="mbti-dim-bar-labels"><span>${d.left} ${lp}%</span><span>${rp}% ${d.right}</span></div>
+                                </div>`;
+                            }).join('');
+                        })()}
+                    </div>` : '<div class="detail-section"><h4>🧠 MBTI性格测试</h4><p style="color:var(--text-light);">尚未完成MBTI测试。<a href="mbti?candidate_id='+c.id+'" target="_blank" style="color:var(--primary);">发送测试链接 →</a></p></div>';
+
+                document.getElementById('candidateDetailModal').innerHTML = `
+                    <div class="detail-header">
+                        <button class="detail-close" onclick="closeDetail()">&times;</button>
+                        <h2>${c.name} <span style="font-size:16px;font-weight:400;opacity:0.8;">HJ-${String(c.id).padStart(6,'0')}</span></h2>
+                        <div class="detail-meta">
+                            ${edu ? `<span class="badge" style="background:${eduColors[edu]};color:${eduTextColors[edu]}">${eduLabels[edu]}</span>` : ''}
+                            ${c.school ? `<span class="badge">${c.school}</span>` : ''}
+                            ${c.major ? `<span class="badge">${c.major}</span>` : ''}
+                            ${c.preferred_category ? `<span class="badge">${catLabels[c.preferred_category]}</span>` : ''}
+                            ${c.mbti_type ? `<span class="badge" style="background:#f3e5f5;color:#7b1fa2;">${c.mbti_type}</span>` : ''}
+                        </div>
+                    </div>
+                    <div class="detail-body">
+                        <div class="detail-info-grid" style="margin-bottom:24px;">
+                            <div class="detail-info-item"><div class="info-label">手机</div><div class="info-value">${c.phone || '-'}</div></div>
+                            <div class="detail-info-item"><div class="info-label">邮箱</div><div class="info-value">${c.email || '-'}</div></div>
+                            <div class="detail-info-item"><div class="info-label">性别</div><div class="info-value">${c.gender || '-'}</div></div>
+                            <div class="detail-info-item"><div class="info-label">毕业年份</div><div class="info-value">${c.graduation_year || '-'}</div></div>
+                            <div class="detail-info-item"><div class="info-label">GPA</div><div class="info-value">${c.gpa || '-'}</div></div>
+                            <div class="detail-info-item"><div class="info-label">籍贯</div><div class="info-value">${c.native_place || '-'}</div></div>
+                            <div class="detail-info-item"><div class="info-label">期望工作地</div><div class="info-value">${c.preferred_location || '-'}</div></div>
+                            <div class="detail-info-item"><div class="info-label">来源</div><div class="info-value">${c.source === 'paper' ? '纸质简历扫描' : c.source === 'manual' ? '手动录入' : '线上投递'}</div></div>
+                            <div class="detail-info-item"><div class="info-label">投递时间</div><div class="info-value">${c.applied_at ? c.applied_at.substring(0,16) : '-'}</div></div>
+                            <div class="detail-info-item"><div class="info-label">投递批次</div><div class="info-value">${getBatchLabel(c.applied_at) || '-'}</div></div>
+                        </div>
+
+                        ${c.self_intro ? `<div class="detail-section"><h4>📝 自我介绍</h4><p>${c.self_intro}</p></div>` : ''}
+                        ${c.experience ? `<div class="detail-section"><h4>💼 实习/工作经历</h4><p style="white-space:pre-line;">${c.experience}</p></div>` : ''}
+                        ${c.projects ? `<div class="detail-section"><h4>🔬 项目经历</h4><p style="white-space:pre-line;">${c.projects}</p></div>` : ''}
+                        ${c.certifications ? `<div class="detail-section"><h4>📜 证书资质</h4><p style="white-space:pre-line;">${c.certifications}</p></div>` : ''}
+                        ${skills ? `<div class="detail-section"><h4>🛠️ 技能标签</h4><div>${skills}</div></div>` : ''}
+
+                        ${mbtiSection}
+
+                        ${recs ? `<div class="detail-section"><h4>🎯 岗位推荐（自动匹配）</h4><div class="rec-list">${recs}</div></div>` : ''}
+
+                        ${c.parsed_data && c.parsed_data.text ? `<div class="detail-section"><h4>📄 简历原文（自动解析）</h4><p style="font-size:13px;color:var(--text-light);white-space:pre-wrap;max-height:200px;overflow-y:auto;background:var(--secondary);padding:12px;border-radius:8px;">${c.parsed_data.text.substring(0,2000)}</p></div>` : ''}
+
+                        ${c.notes ? `<div class="detail-section"><h4>📌 HR备注</h4><p>${c.notes}</p></div>` : ''}
+
+                        <div class="detail-section collab-section" id="detailCollab">
+                            <h4>💬 团队协作（评论 · 评估）</h4>
+                            <p style="color:var(--text-light);font-size:13px;">加载中...</p>
+                        </div>
+
+                        <div class="detail-section">
+                            <h4>⚙️ 操作</h4>
+                            <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:center;">
+                                <label style="font-size:14px;">状态：</label>
+                                <select class="status-select" onchange="updateStatus(${c.id}, this.value)">
+                                    <option value="pending" ${c.status==='pending'?'selected':''}>待筛选</option>
+                                    <option value="interview" ${c.status==='interview'?'selected':''}>面试中</option>
+                                    <option value="offered" ${c.status==='offered'?'selected':''}>已录用</option>
+                                    <option value="rejected" ${c.status==='rejected'?'selected':''}>已淘汰</option>
+                                </select>
+                                ${c.resume_file_path ? `<button class="btn btn-sm btn-primary" onclick="previewResumeUrl('${c.resume_file_path}', '${(c.name||'').replace(/'/g,"\\'")}')">👁️ 预览简历</button>` : ''}
+                                ${c.resume_file_path ? `<button class="btn btn-sm btn-secondary" onclick="window.open('${c.resume_file_path}')">⬇ 下载简历</button>` : ''}
+                                ${c.resume_file_path ? `<button class="btn btn-sm btn-outline" onclick="reparse(${c.id})">重新解析</button>` : ''}
+                                <button class="btn btn-sm btn-danger" onclick="deleteCandidate(${c.id})">删除</button>
+                                <a href="mbti?candidate_id=${c.id}" target="_blank" class="btn btn-sm btn-outline">MBTI测试链接</a>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('candidateDetailOverlay').classList.add('show');
+                currentDetailCandidateId = c.id;
+                loadDetailCollab(c.id);
+            });
+        }
+
+        function closeDetail() {
+            document.getElementById('candidateDetailOverlay').classList.remove('show');
+            currentDetailCandidateId = null;
+        }
+
+        // ===== 候选人详情：协作区（评论 / 评估 / 分配） =====
+        let currentDetailCandidateId = null;
+        let collabUsersCache = [];
+
+        async function loadCollabUsers() {
+            if (collabUsersCache.length > 0) return collabUsersCache;
+            try {
+                const r = await fetch('/api/collab/users');
+                if (r.ok) collabUsersCache = await r.json();
+            } catch (e) { /* ignore */ }
+            return collabUsersCache;
+        }
+
+        async function loadDetailCollab(id) {
+            const box = document.getElementById('detailCollab');
+            if (!box) return;
+            try {
+                const [commentsRes, evalRes, assignRes, users] = await Promise.all([
+                    fetch(`/api/collab/candidates/${id}/comments`),
+                    fetch(`/api/collab/candidates/${id}/evaluations`),
+                    fetch(`/api/collab/candidates/${id}/assignments`),
+                    loadCollabUsers(),
+                ]);
+                const comments = await commentsRes.json();
+                const evalData = await evalRes.json();
+                const assignments = await assignRes.json();
+                renderDetailCollab(id, comments, evalData, assignments, users);
+            } catch (e) {
+                box.innerHTML = '<h4>💬 团队协作</h4><p style="color:var(--text-light);font-size:13px;">协作数据加载失败，请刷新重试</p>';
+            }
+        }
+
+        function refreshDetailCollab(id) { loadDetailCollab(id); }
+
+        function escapeHtml(s) {
+            return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+
+        function renderDetailCollab(id, comments, evalData, assignments, users) {
+            const box = document.getElementById('detailCollab');
+            const summary = evalData.summary;
+            const myEval = (evalData.evaluations || []).find(e => currentUser && e.evaluator_id === currentUser.id);
+
+            // 评估汇总条
+            let summaryHtml = '';
+            if (summary) {
+                const dimLabels = { professional: '专业能力', communication: '沟通表达', potential: '发展潜力', culture_fit: '文化匹配' };
+                const recLabels = { recommend: '👍 推荐', neutral: '😐 中立', not_recommend: '👎 不推荐' };
+                summaryHtml = `
+                    <div class="eval-summary-bar">
+                        <div><div class="es-score">${summary.overall_avg.toFixed(1)}</div><div class="es-label">综合评分（${summary.count}人）</div></div>
+                        <div class="eval-dim-list">
+                            ${Object.entries(dimLabels).map(([k, label]) => `
+                                <div class="eval-dim-item"><div class="ed-val">${summary.dims[k] ? summary.dims[k].toFixed(1) : '-'}</div><div class="ed-label">${label}</div></div>
+                            `).join('')}
+                        </div>
+                        <div style="font-size:13px;color:var(--text);display:flex;gap:10px;flex-wrap:wrap;">
+                            ${Object.entries(summary.recommendations).filter(([k]) => recLabels[k]).map(([k, v]) => `<span>${recLabels[k]} × ${v}</span>`).join('')}
+                        </div>
+                    </div>`;
+            }
+
+            // 各人评估卡片
+            const evalCards = (evalData.evaluations || []).map(e => {
+                const recBadge = e.recommendation === 'recommend' ? '<span class="badge badge-green" style="font-size:11px;">推荐</span>'
+                    : e.recommendation === 'not_recommend' ? '<span class="badge badge-red" style="font-size:11px;">不推荐</span>'
+                    : '<span class="badge badge-gray" style="font-size:11px;">中立</span>';
+                return `<div class="eval-card">
+                    <div class="ec-head">
+                        <div class="c-avatar" style="background:${e.evaluator_id === currentUser?.id ? (currentUser.avatar_color || '#0077b3') : '#78909c'};">${escapeHtml(e.evaluator_name).charAt(0)}</div>
+                        <b style="font-size:14px;">${escapeHtml(e.evaluator_name)}</b>
+                        ${e.evaluator_id === currentUser?.id ? '<span class="badge badge-blue" style="font-size:11px;">我的评估</span>' : ''}
+                        <span style="font-size:16px;font-weight:800;color:var(--primary-dark);margin-left:auto;">${e.overall_score.toFixed(1)} 分</span>
+                        ${recBadge}
+                    </div>
+                    <div class="ec-scores">
+                        <span>专业 <b>${e.scores.professional ?? '-'}</b></span>
+                        <span>沟通 <b>${e.scores.communication ?? '-'}</b></span>
+                        <span>潜力 <b>${e.scores.potential ?? '-'}</b></span>
+                        <span>文化 <b>${e.scores.culture_fit ?? '-'}</b></span>
+                    </div>
+                    ${e.comment ? `<div style="font-size:13px;color:var(--text);background:var(--secondary);border-radius:8px;padding:8px 12px;">${escapeHtml(e.comment)}</div>` : ''}
+                    <div style="font-size:11px;color:var(--text-light);margin-top:6px;">${e.updated_at || e.created_at}</div>
+                </div>`;
+            }).join('') || '<p style="font-size:13px;color:var(--text-light);">暂无评估，点击下方提交第一份评估。</p>';
+
+            // 分配 chips
+            const assignChips = (assignments || []).map(a => `
+                <span class="assign-chip ${a.status === 'completed' ? 'done' : ''}">
+                    ${a.status === 'completed' ? '✅' : '⏳'} ${escapeHtml(a.assigned_to_name)}
+                    <button class="ac-del" title="取消分配" onclick="removeAssignment(${a.id}, ${id})">&times;</button>
+                </span>`).join('');
+            const userOptions = (users || []).filter(u => !(assignments || []).some(a => a.assigned_to === u.id))
+                .map(u => `<option value="${u.id}">${escapeHtml(u.name)}（${u.role === 'admin' ? '管理员' : u.role === 'hr' ? 'HR' : '面试官'}）</option>`).join('');
+
+            // 评论列表
+            const commentItems = (comments || []).map(c => `
+                <div class="comment-item">
+                    <div class="c-avatar" style="background:${c.avatar_color || '#78909c'};">${escapeHtml(c.user_name).charAt(0)}</div>
+                    <div class="c-body">
+                        <div class="c-head">
+                            <span class="c-name">${escapeHtml(c.user_name)}</span>
+                            ${c.user_id === currentUser?.id || currentUser?.role === 'admin' ? `<button class="c-del" onclick="delComment(${c.id}, ${id})">删除</button>` : ''}
+                            <span class="c-time">${c.created_at}</span>
+                        </div>
+                        <div class="c-content">${escapeHtml(c.content)}</div>
+                    </div>
+                </div>`).join('') || '<p style="font-size:13px;color:var(--text-light);margin-bottom:12px;">暂无评论，发表第一条讨论吧。</p>';
+
+            // 我的评估表单（预填已有值）
+            const s = myEval ? myEval.scores : {};
+            box.innerHTML = `
+                <h4>💬 团队协作（评论 · 评估）</h4>
+                ${summaryHtml}
+
+                <div style="margin-bottom:20px;">
+                    <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap;">
+                        <b style="font-size:14px;">🧑‍⚖️ 评估分配</b>
+                        <select id="assignSelect" style="padding:6px 10px;border:1px solid var(--border);border-radius:8px;font-size:13px;">
+                            <option value="">选择评估人...</option>
+                            ${userOptions}
+                        </select>
+                        <button class="btn btn-sm btn-outline" onclick="doAssign(${id})">分配</button>
+                    </div>
+                    <div>${assignChips || '<span style="font-size:12px;color:var(--text-light);">未分配</span>'}</div>
+                </div>
+
+                <div style="margin-bottom:20px;">
+                    <b style="font-size:14px;">⭐ 协作评估（${myEval ? '已提交，可修改' : '我来打分'}）</b>
+                    <div style="background:var(--secondary);border-radius:12px;padding:16px;margin-top:10px;">
+                        <div class="score-slider-row"><label>专业能力</label><input type="range" min="1" max="10" value="${s.professional ?? 7}" id="ev_professional" oninput="document.getElementById('ev_professional_v').textContent=this.value"><span class="sv" id="ev_professional_v">${s.professional ?? 7}</span></div>
+                        <div class="score-slider-row"><label>沟通表达</label><input type="range" min="1" max="10" value="${s.communication ?? 7}" id="ev_communication" oninput="document.getElementById('ev_communication_v').textContent=this.value"><span class="sv" id="ev_communication_v">${s.communication ?? 7}</span></div>
+                        <div class="score-slider-row"><label>发展潜力</label><input type="range" min="1" max="10" value="${s.potential ?? 7}" id="ev_potential" oninput="document.getElementById('ev_potential_v').textContent=this.value"><span class="sv" id="ev_potential_v">${s.potential ?? 7}</span></div>
+                        <div class="score-slider-row"><label>文化匹配</label><input type="range" min="1" max="10" value="${s.culture_fit ?? 7}" id="ev_culture_fit" oninput="document.getElementById('ev_culture_fit_v').textContent=this.value"><span class="sv" id="ev_culture_fit_v">${s.culture_fit ?? 7}</span></div>
+                        <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:10px;">
+                            <select id="ev_recommendation" style="padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;">
+                                <option value="recommend" ${myEval?.recommendation === 'recommend' ? 'selected' : ''}>👍 推荐录用</option>
+                                <option value="neutral" ${!myEval || myEval.recommendation === 'neutral' ? 'selected' : ''}>😐 中立/待定</option>
+                                <option value="not_recommend" ${myEval?.recommendation === 'not_recommend' ? 'selected' : ''}>👎 不推荐</option>
+                            </select>
+                            <input type="text" id="ev_comment" placeholder="一句话点评（可选）" value="${myEval ? escapeHtml(myEval.comment || '') : ''}"
+                                style="flex:1;min-width:180px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;">
+                            <button class="btn btn-sm btn-primary" onclick="submitEvaluation(${id})">${myEval ? '更新评估' : '提交评估'}</button>
+                        </div>
+                    </div>
+                    ${evalCards}
+                </div>
+
+                <div>
+                    <b style="font-size:14px;">💬 团队评论</b>
+                    <div class="comment-list" style="margin-top:10px;">${commentItems}</div>
+                    <div class="comment-input-box">
+                        <input type="text" id="commentInput" placeholder="发表评论，例如：建议安排一面 / 学校背景不错..."
+                            style="flex:1;padding:10px 14px;border:2px solid var(--border);border-radius:10px;font-size:14px;"
+                            onkeydown="if(event.key==='Enter')submitComment(${id})">
+                        <button class="btn btn-sm btn-primary" onclick="submitComment(${id})">发送</button>
+                    </div>
+                </div>
+            `;
+        }
+
+        async function submitComment(id) {
+            const input = document.getElementById('commentInput');
+            const content = input.value.trim();
+            if (!content) return;
+            const r = await fetch(`/api/collab/candidates/${id}/comments`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content }),
+            });
+            if (r.ok) { input.value = ''; loadDetailCollab(id); }
+            else showToast('评论失败');
+        }
+
+        async function delComment(commentId, candidateId) {
+            if (!confirm('删除这条评论？')) return;
+            const r = await fetch(`/api/collab/comments/${commentId}`, { method: 'DELETE' });
+            if (r.ok) loadDetailCollab(candidateId);
+            else showToast('删除失败');
+        }
+
+        async function doAssign(candidateId) {
+            const select = document.getElementById('assignSelect');
+            const userId = parseInt(select.value);
+            if (!userId) { showToast('请选择评估人'); return; }
+            const r = await fetch(`/api/collab/candidates/${candidateId}/assignments`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ assigned_to: userId }),
+            });
+            if (r.ok) loadDetailCollab(candidateId);
+            else showToast('分配失败');
+        }
+
+        async function removeAssignment(assignmentId, candidateId) {
+            const r = await fetch(`/api/collab/assignments/${assignmentId}`, { method: 'DELETE' });
+            if (r.ok) loadDetailCollab(candidateId);
+            else showToast('取消失败');
+        }
+
+        async function submitEvaluation(candidateId) {
+            const scores = {
+                professional: parseInt(document.getElementById('ev_professional').value),
+                communication: parseInt(document.getElementById('ev_communication').value),
+                potential: parseInt(document.getElementById('ev_potential').value),
+                culture_fit: parseInt(document.getElementById('ev_culture_fit').value),
+            };
+            const data = {
+                scores,
+                recommendation: document.getElementById('ev_recommendation').value,
+                comment: document.getElementById('ev_comment').value.trim(),
+            };
+            const r = await fetch(`/api/collab/candidates/${candidateId}/evaluations`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data),
+            });
+            if (r.ok) { showToast('评估已提交'); loadDetailCollab(candidateId); }
+            else showToast('提交失败');
+        }
+
+        // 简历在线预览
+        function previewResumeUrl(url, name) {
+            document.getElementById('resumePreviewTitle').textContent = (name || '候选人') + ' 的简历';
+            document.getElementById('resumePreviewFrame').src = url;
+            document.getElementById('resumePreviewOverlay').classList.add('show');
+        }
+        function closeResumePreview() {
+            document.getElementById('resumePreviewOverlay').classList.remove('show');
+            document.getElementById('resumePreviewFrame').src = '';
+        }
+
+        function updateStatus(id, status) {
+            fetch('/api/admin/candidates/' + id, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({status}) })
+                .then(r => r.json()).then(() => { showToast('状态已更新'); loadCandidates(); });
+        }
+
+        function reparse(id) {
+            showLoading('正在重新解析简历...');
+            fetch('/api/admin/candidates/' + id + 'reparse', { method: 'POST' })
+                .then(r => r.json()).then(data => {
+                    hideLoading();
+                    if (data.error) showToast(data.error);
+                    else { showToast('重新解析成功'); closeDetail(); setTimeout(() => showCandidateDetail(id), 200); }
+                });
+        }
+
+        function deleteCandidate(id) {
+            if (!confirm('确认删除该候选人？此操作不可撤销。')) return;
+            fetch('/api/admin/candidates/' + id, { method: 'DELETE' })
+                .then(r => r.json()).then(() => { showToast('已删除'); closeDetail(); loadCandidates(); });
+        }
+
+        // ===== Jobs Management =====
+        function loadJobs() {
+            fetch('/api/admin/jobs').then(r => r.json()).then(jobs => {
+                const actionsHtml = j => `
+                    <button class="btn btn-sm btn-outline" onclick="showJobForm(${j.id})">编辑</button>
+                    <button class="btn btn-sm ${j.status==='open'?'btn-danger':'btn-secondary'}" onclick="toggleJobStatus(${j.id},'${j.status}')">${j.status==='open'?'关闭':'开启'}</button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteJob(${j.id},'${(j.title||'').replace(/'/g,"\\'")}')">删除</button>`;
+                // 桌面表格
+                document.getElementById('jobTableBody').innerHTML = jobs.map(j => `
+                    <tr>
+                        <td style="font-weight:600;">${j.title}</td>
+                        <td><span class="badge badge-green">${catLabels[j.category] || j.category}</span></td>
+                        <td>${eduLabels[j.education_min] || '不限'}</td>
+                        <td>${j.location || '-'}</td>
+                        <td>${j.headcount}</td>
+                        <td>${j.salary_range || '面议'}</td>
+                        <td><span class="badge badge-${j.status==='open'?'green':'gray'}">${j.status==='open'?'招聘中':'已关闭'}</span></td>
+                        <td onclick="event.stopPropagation()" style="white-space:nowrap;">${actionsHtml(j)}</td>
+                    </tr>
+                `).join('');
+                // 竖屏卡片
+                document.getElementById('jobCardList').innerHTML = jobs.map(j => `
+                    <div class="job-card">
+                        <div class="jc-head">
+                            <span class="jc-title">${j.title}</span>
+                            <span class="badge badge-${j.status==='open'?'green':'gray'}">${j.status==='open'?'招聘中':'已关闭'}</span>
+                        </div>
+                        <div class="jc-info">
+                            <div class="jc-field"><span class="info-label">方向</span><span class="info-value">${catLabels[j.category] || j.category}</span></div>
+                            <div class="jc-field"><span class="info-label">最低学历</span><span class="info-value">${eduLabels[j.education_min] || '不限'}</span></div>
+                            <div class="jc-field"><span class="info-label">地点</span><span class="info-value">${j.location || '-'}</span></div>
+                            <div class="jc-field"><span class="info-label">招聘人数</span><span class="info-value">${j.headcount}</span></div>
+                            <div class="jc-field" style="grid-column:1/-1;"><span class="info-label">薪资</span><span class="info-value">${j.salary_range || '面议'}</span></div>
+                        </div>
+                        <div class="jc-actions">${actionsHtml(j)}</div>
+                    </div>
+                `).join('');
+            });
+        }
+
+        function deleteJob(id, name) {
+            if (!confirm('确认删除岗位「' + (name || '') + '」？该岗位下的候选人推荐记录将不受影响，但此操作不可撤销。')) return;
+            fetch('/api/admin/jobs/' + id, { method: 'DELETE' })
+                .then(r => r.json()).then(() => { showToast('岗位已删除'); loadJobs(); });
+        }
+
+        function toggleJobStatus(id, currentStatus) {
+            const newStatus = currentStatus === 'open' ? 'closed' : 'open';
+            fetch('/api/admin/jobs/' + id, { method: 'PUT', headers: {'Content-Type':'application/json'}, body: JSON.stringify({status: newStatus}) })
+                .then(r => r.json()).then(() => { showToast('岗位状态已更新'); loadJobs(); });
+        }
+
+        function showJobForm(id) {
+            const isEdit = !!id;
+            let job = {};
+            if (isEdit) {
+                fetch('/api/admin/jobs').then(r => r.json()).then(jobs => {
+                    job = jobs.find(j => j.id === id) || {};
+                    renderJobForm(isEdit, job);
+                });
+            } else {
+                renderJobForm(false, {});
+            }
+        }
+
+        function renderJobForm(isEdit, job) {
+            document.getElementById('jobFormModal').innerHTML = `
+                <div class="form-modal-header">
+                    <h2>${isEdit ? '编辑岗位' : '新增岗位'}</h2>
+                    <button class="detail-close" style="position:static;color:var(--text);font-size:24px;" onclick="closeJobForm()">&times;</button>
+                </div>
+                <div class="form-modal-body">
+                    <div class="form-group"><label>岗位名称 <span class="required">*</span></label><input type="text" id="jf_title" value="${job.title||''}" placeholder="如：环保研发工程师"></div>
+                    <div class="form-row">
+                        <div class="form-group"><label>招聘方向 <span class="required">*</span></label>
+                            <select id="jf_category">
+                                <option value="tech" ${job.category==='tech'?'selected':''}>技术研发类</option>
+                                <option value="project" ${job.category==='project'?'selected':''}>项目工程类</option>
+                                <option value="business" ${job.category==='business'?'selected':''}>商务市场类</option>
+                                <option value="operations" ${job.category==='operations'?'selected':''}>运营服务类</option>
+                                <option value="support" ${job.category==='support'?'selected':''}>职能支持类</option>
+                            </select>
+                        </div>
+                        <div class="form-group"><label>最低学历 <span class="required">*</span></label>
+                            <select id="jf_education_min">
+                                <option value="bachelor" ${job.education_min==='bachelor'?'selected':''}>本科</option>
+                                <option value="master" ${job.education_min==='master'?'selected':''}>硕士</option>
+                                <option value="phd" ${job.education_min==='phd'?'selected':''}>博士</option>
+                                <option value="postdoc" ${job.education_min==='postdoc'?'selected':''}>博士后</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group"><label>工作地点</label><input type="text" id="jf_location" value="${job.location||''}" placeholder="如：上海/全国"></div>
+                        <div class="form-group"><label>招聘人数</label><input type="number" id="jf_headcount" value="${job.headcount||1}" min="1"></div>
+                    </div>
+                    <div class="form-group"><label>薪资范围</label><input type="text" id="jf_salary" value="${job.salary_range||''}" placeholder="如：15-25K"></div>
+                    <div class="form-group"><label>岗位描述</label><textarea id="jf_description" rows="3">${job.description||''}</textarea></div>
+                    <div class="form-group"><label>岗位职责</label><textarea id="jf_responsibilities" rows="4">${job.responsibilities||''}</textarea></div>
+                    <div class="form-group"><label>任职要求</label><textarea id="jf_requirements" rows="4">${job.requirements||''}</textarea></div>
+                </div>
+                <div class="form-modal-footer">
+                    <button class="btn btn-outline" onclick="closeJobForm()">取消</button>
+                    <button class="btn btn-primary" onclick="saveJob(${isEdit?job.id:0})">${isEdit?'保存修改':'创建岗位'}</button>
+                </div>
+            `;
+            document.getElementById('jobFormOverlay').classList.add('show');
+        }
+
+        function closeJobForm() { document.getElementById('jobFormOverlay').classList.remove('show'); }
+
+        function saveJob(id) {
+            const data = {
+                title: document.getElementById('jf_title').value,
+                category: document.getElementById('jf_category').value,
+                education_min: document.getElementById('jf_education_min').value,
+                location: document.getElementById('jf_location').value,
+                headcount: parseInt(document.getElementById('jf_headcount').value) || 1,
+                salary_range: document.getElementById('jf_salary').value,
+                description: document.getElementById('jf_description').value,
+                responsibilities: document.getElementById('jf_responsibilities').value,
+                requirements: document.getElementById('jf_requirements').value,
+                status: 'open'
+            };
+            if (!data.title) { showToast('请输入岗位名称'); return; }
+            const url = id ? '/api/admin/jobs/' + id : '/api/admin/jobs';
+            const method = id ? 'PUT' : 'POST';
+            fetch(url, { method, headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) })
+                .then(r => r.json()).then(() => { showToast(id?'修改成功':'创建成功'); closeJobForm(); loadJobs(); });
+        }
+
+        // ===== 导入线下简历 =====
+        function switchUploadTab(tab, el) {
+            document.querySelectorAll('.upload-tab').forEach(t => t.classList.remove('active'));
+            el.classList.add('active');
+            document.querySelectorAll('.upload-tab-content').forEach(c => c.classList.remove('active'));
+            document.getElementById('uploadTab-' + tab).classList.add('active');
+        }
+
+        // 批量上传扫描件/照片
+        async function uploadPaperResumeBatch(event) {
+            const files = Array.from(event.target.files);
+            if (!files.length) return;
+            const resultDiv = document.getElementById('uploadResult');
+            resultDiv.style.display = 'block';
+            resultDiv.innerHTML = `<p style="font-weight:600;color:var(--primary-dark);">正在上传 ${files.length} 个文件...</p>`;
+            let okCount = 0;
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                const itemDiv = document.createElement('div');
+                itemDiv.className = 'parsed-preview';
+                itemDiv.style.cssText = 'background:#f5f5f5;border:1px solid #ddd;margin-top:10px;';
+                itemDiv.innerHTML = `<div class="parsed-title">⏳ [${i+1}/${files.length}] ${file.name} - 上传中...</div>`;
+                resultDiv.appendChild(itemDiv);
+                try {
+                    const formData = new FormData();
+                    formData.append('resume', file);
+                    const resp = await fetch('/api/admin/candidates/upload-paper', { method: 'POST', body: formData });
+                    const data = await resp.json();
+                    if (data.error) {
+                        itemDiv.style.background = '#ffebee'; itemDiv.style.borderColor = '#ef9a9a';
+                        itemDiv.innerHTML = `<div class="parsed-title">❌ [${i+1}/${files.length}] ${file.name} - 失败</div><div class="parsed-fields">${data.error}</div>`;
+                    } else {
+                        const pd = data.parsedData || {};
+                        const isImg = /\.(png|jpe?g)$/i.test(file.name);
+                        itemDiv.style.background = isImg ? '#fff8e1' : '#e8f5e9';
+                        itemDiv.style.borderColor = isImg ? '#ffe082' : '#a5d6a7';
+                        itemDiv.innerHTML = `
+                            <div class="parsed-title">${isImg?'🖼️':'✅'} [${i+1}/${files.length}] ${file.name} ${isImg?'(图片·需手动补充)':'- 上传成功'} · HJ-${String(data.id).padStart(6,'0')}</div>
+                            <div class="parsed-fields">
+                                ${pd.name ? `<div>姓名：${pd.name}</div>` : ''}
+                                ${pd.phone ? `<div>手机：${pd.phone}</div>` : ''}
+                                ${pd.email ? `<div>邮箱：${pd.email}</div>` : ''}
+                                ${pd.education ? `<div>学历：${eduLabels[pd.education]||pd.education}</div>` : ''}
+                                ${pd.school ? `<div>学校：${pd.school}</div>` : ''}
+                                ${pd.major ? `<div>专业：${pd.major}</div>` : ''}
+                                ${isImg ? '<div style="color:#e65100;">图片格式无法自动解析，请到「手动录入」补充信息</div>' : ''}
+                            </div>
+                            <div style="margin-top:8px;">
+                                <button class="btn btn-sm btn-primary" onclick="showCandidateDetail(${data.id})">查看详情 →</button>
+                            </div>`;
+                        okCount++;
+                    }
+                } catch (err) {
+                    itemDiv.style.background = '#ffebee'; itemDiv.style.borderColor = '#ef9a9a';
+                    itemDiv.innerHTML = `<div class="parsed-title">❌ [${i+1}/${files.length}] ${file.name} - 网络错误</div>`;
+                }
+            }
+            const summary = document.createElement('div');
+            summary.style.cssText = 'margin-top:12px;padding:12px;border-radius:8px;font-weight:600;text-align:center;' + (okCount === files.length ? 'background:#e8f5e9;color:#2e7d32;' : 'background:#fff3e0;color:#e65100;');
+            summary.textContent = `上传完成：成功 ${okCount}/${files.length}`;
+            resultDiv.insertBefore(summary, resultDiv.children[1] || resultDiv.firstChild);
+            event.target.value = '';
+            if (okCount > 0) { showToast(`成功上传 ${okCount} 份简历`); loadStats(); }
+        }
+
+        // 手动录入候选人
+        function saveManualCandidate() {
+            const name = document.getElementById('mc_name').value.trim();
+            const education = document.getElementById('mc_education').value;
+            if (!name) { showToast('请输入姓名'); document.getElementById('mc_name').focus(); return; }
+            if (!education) { showToast('请选择学历'); document.getElementById('mc_education').focus(); return; }
+            const data = {
+                name: name,
+                phone: document.getElementById('mc_phone').value.trim(),
+                email: document.getElementById('mc_email').value.trim(),
+                gender: document.getElementById('mc_gender').value,
+                education: education,
+                school: document.getElementById('mc_school').value.trim(),
+                major: document.getElementById('mc_major').value.trim(),
+                graduation_year: document.getElementById('mc_graduation_year').value || null,
+                preferred_category: document.getElementById('mc_preferred_category').value,
+                skills: document.getElementById('mc_skills').value.trim(),
+                experience: document.getElementById('mc_experience').value.trim(),
+                projects: document.getElementById('mc_projects').value.trim(),
+                self_intro: document.getElementById('mc_self_intro').value.trim()
+            };
+            showLoading('正在保存候选人...');
+            fetch('/api/admin/candidates', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) })
+                .then(r => r.json()).then(res => {
+                    hideLoading();
+                    const div = document.getElementById('manualResult');
+                    if (res.error) {
+                        div.innerHTML = `<div class="parsed-preview" style="background:#ffebee;border-color:#ef9a9a;"><div class="parsed-title">❌ 保存失败</div><div class="parsed-fields">${res.error}</div></div>`;
+                        return;
+                    }
+                    div.innerHTML = `<div class="parsed-preview" style="background:#e8f5e9;border-color:#a5d6a7;">
+                        <div class="parsed-title">✅ 录入成功！候选人编号：HJ-${String(res.id).padStart(6,'0')}</div>
+                        <div style="margin-top:8px;">
+                            <button class="btn btn-sm btn-primary" onclick="showCandidateDetail(${res.id})">查看详情 →</button>
+                            <button class="btn btn-sm btn-outline" onclick="clearManualForm()">继续录入下一位</button>
+                        </div>
+                    </div>`;
+                    showToast('候选人录入成功');
+                    clearManualForm(false);
+                    loadStats();
+                }).catch(err => { hideLoading(); showToast('保存失败'); });
+        }
+
+        function clearManualForm(clearResult) {
+            ['mc_name','mc_phone','mc_email','mc_gender','mc_education','mc_school','mc_major','mc_graduation_year','mc_preferred_category','mc_skills','mc_experience','mc_projects','mc_self_intro'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            if (clearResult !== false) {
+                const r = document.getElementById('manualResult');
+                if (r) r.innerHTML = '';
+            }
+        }
+
+        // ===== MBTI Match =====
+        function loadMbtiMatch() {
+            // 加载热力图
+            fetch('/api/admin/stats').then(r => r.json()).then(stats => {
+                const mbtiCounts = {};
+                stats.byMbti.forEach(d => { mbtiCounts[d.mbti_type] = d.count; });
+
+                const types = ['INTJ','INTP','ENTJ','ENTP','INFJ','INFP','ENFJ','ENFP','ISTJ','ISFJ','ESTJ','ESFJ','ISTP','ISFP','ESTP','ESFP'];
+                const cats = ['tech','project','business','operations','support'];
+                const fitColors = { best: '#e8f5e9', good: '#e3f2fd', general: '#f5f5f5', watch: '#fff3e0' };
+                const fitTextColors = { best: '#2e7d32', good: '#1565c0', general: '#636e72', watch: '#e65100' };
+
+                let heatmapHtml = '<table class="data-table" style="font-size:12px;"><thead><tr><th>MBTI类型</th>';
+                cats.forEach(c => { heatmapHtml += `<th>${catLabels[c]}</th>`; });
+                heatmapHtml += '<th>候选人数</th></tr></thead><tbody>';
+                types.forEach(t => {
+                    const count = mbtiCounts[t] || 0;
+                    heatmapHtml += `<tr><td style="font-weight:700;">${t}</td>`;
+                    cats.forEach(c => {
+                        const fit = (typeCategoryFitData[t] && typeCategoryFitData[t][c]) || 'general';
+                        const label = fitLabelsData[fit] ? fitLabelsData[fit].label : fit;
+                        heatmapHtml += `<td style="background:${fitColors[fit]};color:${fitTextColors[fit]};text-align:center;font-weight:600;font-size:11px;">${label}</td>`;
+                    });
+                    heatmapHtml += `<td style="text-align:center;font-weight:700;color:${count>0?'var(--primary)':'var(--text-light)'}">${count}</td></tr>`;
+                });
+                heatmapHtml += '</tbody></table>';
+                document.getElementById('mbtiHeatmap').innerHTML = heatmapHtml;
+            });
+
+            // 加载MBTI已完成的候选人
+            fetch('/api/admin/candidates?sort=score').then(r => r.json()).then(candidates => {
+                const mbtiCandidates = candidates.filter(c => c.mbti_type);
+                const tbody = document.getElementById('mbtiCandidateBody');
+                if (mbtiCandidates.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--text-light);">暂无已完成MBTI测试的候选人</td></tr>';
+                    return;
+                }
+                tbody.innerHTML = mbtiCandidates.map(c => {
+                    const fit = c.preferred_category && typeCategoryFitData[c.mbti_type] ? typeCategoryFitData[c.mbti_type][c.preferred_category] : 'general';
+                    const fitLabel = fitLabelsData[fit] ? fitLabelsData[fit].label : fit;
+                    const fitBadge = `<span class="badge badge-${fit==='best'?'green':fit==='good'?'blue':fit==='watch'?'orange':'gray'}">${fitLabel}</span>`;
+                    const recScore = c.rec_scores ? c.rec_scores.split(',').map(Number).sort((a,b)=>b-a)[0] : null;
+                    return `<tr onclick="showCandidateDetail(${c.id})">
+                        <td style="font-weight:600;">${c.name}</td>
+                        <td><span class="mbti-badge">${c.mbti_type}</span></td>
+                        <td>${c.preferred_category ? catLabels[c.preferred_category] : '-'}</td>
+                        <td>${fitBadge}</td>
+                        <td>${recScore!==null ? `<span class="match-score ${recScore>=60?'high':recScore>=40?'mid':'low'}">${recScore}%</span>` : '-'}</td>
+                        <td onclick="event.stopPropagation()"><button class="btn btn-sm btn-outline" onclick="showCandidateDetail(${c.id})">查看详情</button></td>
+                    </tr>`;
+                }).join('');
+            });
+        }
+
+        // MBTI fit data (copied from mbti-data.js for the heatmap)
+        const typeCategoryFitData = {
+            'INTJ': { tech: 'best', project: 'good', business: 'watch', operations: 'watch', support: 'general' },
+            'INTP': { tech: 'best', project: 'general', business: 'watch', operations: 'general', support: 'general' },
+            'ENTJ': { tech: 'good', project: 'best', business: 'best', operations: 'good', support: 'good' },
+            'ENTP': { tech: 'good', project: 'good', business: 'best', operations: 'watch', support: 'general' },
+            'INFJ': { tech: 'good', project: 'general', business: 'general', operations: 'general', support: 'best' },
+            'INFP': { tech: 'good', project: 'watch', business: 'general', operations: 'watch', support: 'good' },
+            'ENFJ': { tech: 'general', project: 'good', business: 'good', operations: 'general', support: 'best' },
+            'ENFP': { tech: 'general', project: 'general', business: 'best', operations: 'watch', support: 'good' },
+            'ISTJ': { tech: 'good', project: 'good', business: 'general', operations: 'best', support: 'good' },
+            'ISFJ': { tech: 'general', project: 'general', business: 'general', operations: 'good', support: 'best' },
+            'ESTJ': { tech: 'general', project: 'best', business: 'good', operations: 'best', support: 'good' },
+            'ESFJ': { tech: 'watch', project: 'general', business: 'good', operations: 'good', support: 'best' },
+            'ISTP': { tech: 'good', project: 'good', business: 'general', operations: 'best', support: 'general' },
+            'ISFP': { tech: 'good', project: 'general', business: 'general', operations: 'best', support: 'good' },
+            'ESTP': { tech: 'general', project: 'good', business: 'best', operations: 'good', support: 'general' },
+            'ESFP': { tech: 'watch', project: 'general', business: 'best', operations: 'good', support: 'good' },
+        };
+        const fitLabelsData = {
+            best: { label: '高度匹配' }, good: { label: '良好匹配' },
+            general: { label: '基本匹配' }, watch: { label: '需关注' },
+        };
+
+        // ===== 建议板 =====
+        const sugCatLabels = { job: '岗位设置', website: '网站功能', process: '招聘流程', data: '数据统计', other: '其他' };
+        const sugStatusLabels = { open: '待讨论', discussing: '讨论中', implemented: '已采纳', rejected: '未采纳' };
+        let allSuggestions = [];
+        let sugFilter = '';
+
+        function filterSuggestions(status, el) {
+            sugFilter = status;
+            document.querySelectorAll('.suggestion-filter .btn').forEach(b => {
+                b.classList.remove('btn-primary'); b.classList.add('btn-outline');
+            });
+            el.classList.remove('btn-outline'); el.classList.add('btn-primary');
+            renderSuggestions();
+        }
+
+        async function loadSuggestions() {
+            const r = await fetch('/api/collab/suggestions');
+            if (!r.ok) return;
+            allSuggestions = await r.json();
+            renderSuggestions();
+        }
+
+        function renderSuggestions() {
+            const box = document.getElementById('suggestionList');
+            const list = allSuggestions.filter(s => !sugFilter || s.status === sugFilter);
+            if (list.length === 0) {
+                box.innerHTML = '<div class="suggestion-card"><p style="color:var(--text-light);text-align:center;padding:20px;">暂无建议，点击右上角「+ 提交建议」发起第一个讨论</p></div>';
+                return;
+            }
+            box.innerHTML = list.map(sug => {
+                const voted = currentUser && sug.votes.includes(currentUser.id);
+                const comments = (sug.comments || []).map(c => `
+                    <div class="sg-comment-item">
+                        <div class="m-avatar" style="background:${c.user_id === currentUser?.id ? (currentUser.avatar_color || '#0077b3') : '#78909c'};">${escapeHtml(c.user_name).charAt(0)}</div>
+                        <div class="sgc-body"><b>${escapeHtml(c.user_name)}</b>：<span style="color:var(--text);">${escapeHtml(c.content)}</span> <span style="color:var(--text-light);font-size:11px;">${c.created_at}</span></div>
+                    </div>`).join('');
+                return `<div class="suggestion-card">
+                    <div class="sg-head">
+                        <div class="sg-vote ${voted ? 'voted' : ''}" onclick="voteSug(${sug.id})">
+                            <span class="v-icon">👍</span>
+                            <span class="v-count">${sug.votes.length}</span>
+                        </div>
+                        <div class="sg-main">
+                            <div class="sg-title">
+                                ${escapeHtml(sug.title)}
+                                <span class="sg-status-badge ${sug.status}">${sugStatusLabels[sug.status] || sug.status}</span>
+                                <span class="badge badge-gray" style="font-size:11px;">${sugCatLabels[sug.category] || '其他'}</span>
+                            </div>
+                            ${sug.content ? `<div class="sg-content">${escapeHtml(sug.content)}</div>` : ''}
+                            <div class="sg-meta">
+                                <span class="m-avatar" style="background:${sug.avatar_color || '#78909c'};">${escapeHtml(sug.user_name).charAt(0)}</span>
+                                <span>${escapeHtml(sug.user_name)}</span>
+                                <span>·</span><span>${sug.created_at}</span>
+                            </div>
+                            ${comments ? `<div class="sg-comments">${comments}</div>` : ''}
+                            <div class="sg-actions">
+                                <button class="btn btn-sm btn-outline" onclick="toggleSugComment(${sug.id})">💬 回复</button>
+                                ${currentUser && currentUser.role === 'admin' ? `
+                                    <select onchange="updateSugStatus(${sug.id}, this.value)" style="padding:5px 10px;border:1px solid var(--border);border-radius:8px;font-size:12px;">
+                                        <option value="">标记状态...</option>
+                                        <option value="open">待讨论</option>
+                                        <option value="discussing">讨论中</option>
+                                        <option value="implemented">已采纳</option>
+                                        <option value="rejected">未采纳</option>
+                                    </select>` : ''}
+                            </div>
+                            <div id="sugCommentBox-${sug.id}" style="display:none;margin-top:10px;">
+                                <div style="display:flex;gap:8px;">
+                                    <input type="text" id="sugCommentInput-${sug.id}" placeholder="回复..."
+                                        style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;"
+                                        onkeydown="if(event.key==='Enter')submitSugComment(${sug.id})">
+                                    <button class="btn btn-sm btn-primary" onclick="submitSugComment(${sug.id})">回复</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+        }
+
+        async function voteSug(id) {
+            const r = await fetch(`/api/collab/suggestions/${id}/vote`, { method: 'POST' });
+            if (r.ok) loadSuggestions();
+        }
+
+        function toggleSugComment(id) {
+            const box = document.getElementById('sugCommentBox-' + id);
+            box.style.display = box.style.display === 'none' ? 'block' : 'none';
+            if (box.style.display === 'block') document.getElementById('sugCommentInput-' + id).focus();
+        }
+
+        async function submitSugComment(id) {
+            const input = document.getElementById('sugCommentInput-' + id);
+            const content = input.value.trim();
+            if (!content) return;
+            const r = await fetch(`/api/collab/suggestions/${id}/comments`, {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ content }),
+            });
+            if (r.ok) { input.value = ''; loadSuggestions(); }
+        }
+
+        async function updateSugStatus(id, status) {
+            if (!status) return;
+            const r = await fetch(`/api/collab/suggestions/${id}/status`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status }),
+            });
+            if (r.ok) { showToast('状态已更新'); loadSuggestions(); }
+        }
+
+        function showSuggestionForm() {
+            document.getElementById('suggestionFormModal').innerHTML = `
+                <div class="form-modal-header">
+                    <h2>💡 提交建议</h2>
+                    <button class="detail-close" style="position:static;color:var(--text);font-size:24px;" onclick="closeSuggestionForm()">&times;</button>
+                </div>
+                <div class="form-modal-body">
+                    <div class="form-group"><label>建议标题 <span class="required">*</span></label>
+                        <input type="text" id="sgf_title" placeholder="一句话概括你的建议"></div>
+                    <div class="form-group"><label>类别</label>
+                        <select id="sgf_category">
+                            <option value="job">岗位设置</option>
+                            <option value="website">网站功能</option>
+                            <option value="process">招聘流程</option>
+                            <option value="data">数据统计</option>
+                            <option value="other">其他</option>
+                        </select></div>
+                    <div class="form-group"><label>详细说明</label>
+                        <textarea id="sgf_content" rows="5" placeholder="说明背景、现状问题、你的具体建议..."></textarea></div>
+                </div>
+                <div class="form-modal-footer">
+                    <button class="btn btn-outline" onclick="closeSuggestionForm()">取消</button>
+                    <button class="btn btn-primary" onclick="saveSuggestion()">提交建议</button>
+                </div>`;
+            document.getElementById('suggestionFormOverlay').classList.add('show');
+        }
+
+        function closeSuggestionForm() { document.getElementById('suggestionFormOverlay').classList.remove('show'); }
+
+        async function saveSuggestion() {
+            const title = document.getElementById('sgf_title').value.trim();
+            if (!title) { showToast('请填写建议标题'); return; }
+            const r = await fetch('/api/collab/suggestions', {
+                method: 'POST', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    title,
+                    category: document.getElementById('sgf_category').value,
+                    content: document.getElementById('sgf_content').value.trim(),
+                }),
+            });
+            if (r.ok) { closeSuggestionForm(); showToast('建议已提交'); loadSuggestions(); }
+            else showToast('提交失败');
+        }
+
+        // ===== 团队动态 =====
+        async function loadActivities() {
+            const r = await fetch('/api/collab/activities?limit=60');
+            if (!r.ok) return;
+            const list = await r.json();
+            const box = document.getElementById('activityList');
+            if (!list || list.length === 0) {
+                box.innerHTML = '<p style="color:var(--text-light);text-align:center;padding:20px;">暂无动态</p>';
+                return;
+            }
+            const actionIcons = {
+                login: '🔑', logout: '👋', comment: '💬', evaluation: '⭐', assign: '📋',
+                status_change: '🔄', candidate_delete: '🗑️', suggestion: '💡',
+                user_create: '👤', user_update: '✏️', user_delete: '👤',
+            };
+            box.innerHTML = list.map(a => `
+                <div class="activity-item">
+                    <div class="a-avatar" style="background:${a.avatar_color || '#0077b3'};">${escapeHtml(a.user_name).charAt(0)}</div>
+                    <div class="a-body">
+                        <div class="a-text">${actionIcons[a.action] || '⚡'} <b>${escapeHtml(a.user_name)}</b> ${escapeHtml(a.description)}
+                            ${a.target_type === 'candidate' && a.target_id ? `<a href="javascript:void(0)" onclick="showCandidateDetail(${a.target_id})" style="color:var(--primary);font-size:13px;">查看 →</a>` : ''}
+                        </div>
+                        <div class="a-time">${a.created_at}</div>
+                    </div>
+                </div>`).join('');
+        }
+
+        // ===== 成员管理 =====
+        const roleLabels2 = { admin: '管理员', hr: 'HR', interviewer: '面试官' };
+
+        async function loadUsers() {
+            if (!currentUser || currentUser.role !== 'admin') return;
+            const r = await fetch('/api/collab/users');
+            if (!r.ok) return;
+            const users = await r.json();
+            document.getElementById('userTableBody').innerHTML = users.map(u => `
+                <tr>
+                    <td><div style="display:flex;align-items:center;gap:10px;">
+                        <div class="c-avatar" style="width:32px;height:32px;border-radius:50%;color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;background:${u.avatar_color};">${escapeHtml(u.name).charAt(0)}</div>
+                        <b>${escapeHtml(u.name)}</b>
+                        ${u.id === currentUser.id ? '<span class="badge badge-blue" style="font-size:11px;">我</span>' : ''}
+                    </div></td>
+                    <td>${escapeHtml(u.username)}</td>
+                    <td><span class="badge badge-${u.role === 'admin' ? 'green' : 'gray'}">${roleLabels2[u.role] || u.role}</span></td>
+                    <td style="font-size:13px;color:var(--text-light);">${u.created_at}</td>
+                    <td onclick="event.stopPropagation()" style="white-space:nowrap;">
+                        <button class="btn btn-sm btn-outline" onclick="showUserForm(${u.id})">编辑</button>
+                        ${u.id !== currentUser.id ? `<button class="btn btn-sm btn-danger" onclick="deleteUserAccount(${u.id}, '${escapeHtml(u.name).replace(/'/g, "\\'")}')">删除</button>` : ''}
+                    </td>
+                </tr>`).join('');
+        }
+
+        function showUserForm(id) {
+            let user = {};
+            if (id) {
+                // 从表格数据里找不到，重新拉一次
+                fetch('/api/collab/users').then(r => r.json()).then(users => {
+                    user = users.find(u => u.id === id) || {};
+                    renderUserForm(user);
+                });
+            } else {
+                renderUserForm({});
+            }
+        }
+
+        function renderUserForm(user) {
+            const isEdit = !!user.id;
+            document.getElementById('userFormModal').innerHTML = `
+                <div class="form-modal-header">
+                    <h2>${isEdit ? '编辑成员' : '添加成员'}</h2>
+                    <button class="detail-close" style="position:static;color:var(--text);font-size:24px;" onclick="closeUserForm()">&times;</button>
+                </div>
+                <div class="form-modal-body">
+                    <div class="form-group"><label>姓名 <span class="required">*</span></label>
+                        <input type="text" id="uf_name" value="${user.name || ''}" placeholder="成员姓名"></div>
+                    ${!isEdit ? `<div class="form-group"><label>用户名 <span class="required">*</span></label>
+                        <input type="text" id="uf_username" placeholder="登录用户名（字母/数字）"></div>` : ''}
+                    <div class="form-group"><label>${isEdit ? '重置密码（留空则不修改）' : '初始密码'} ${!isEdit ? '<span class="required">*</span>' : ''}</label>
+                        <input type="text" id="uf_password" placeholder="${isEdit ? '留空不修改' : '至少6位'}"></div>
+                    <div class="form-group"><label>角色</label>
+                        <select id="uf_role">
+                            <option value="hr" ${user.role === 'hr' ? 'selected' : ''}>HR（日常招聘操作）</option>
+                            <option value="interviewer" ${user.role === 'interviewer' ? 'selected' : ''}>面试官（评估打分）</option>
+                            <option value="admin" ${user.role === 'admin' ? 'selected' : ''}>管理员（全部权限+成员管理）</option>
+                        </select></div>
+                </div>
+                <div class="form-modal-footer">
+                    <button class="btn btn-outline" onclick="closeUserForm()">取消</button>
+                    <button class="btn btn-primary" onclick="saveUser(${user.id || 0})">${isEdit ? '保存' : '创建账号'}</button>
+                </div>`;
+            document.getElementById('userFormOverlay').classList.add('show');
+        }
+
+        function closeUserForm() { document.getElementById('userFormOverlay').classList.remove('show'); }
+
+        async function saveUser(id) {
+            const name = document.getElementById('uf_name').value.trim();
+            const password = document.getElementById('uf_password').value;
+            const role = document.getElementById('uf_role').value;
+            if (!name) { showToast('请填写姓名'); return; }
+            if (id) {
+                const body = { name, role };
+                if (password) body.password = password;
+                const r = await fetch('/api/collab/users/' + id, {
+                    method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body),
+                });
+                const data = await r.json();
+                if (!r.ok) { showToast(data.error || '保存失败'); return; }
+                showToast('已保存');
+                closeUserForm(); loadUsers();
+            } else {
+                const username = document.getElementById('uf_username').value.trim();
+                if (!username) { showToast('请填写用户名'); return; }
+                if (!password || password.length < 6) { showToast('密码至少6位'); return; }
+                const r = await fetch('/api/collab/users', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password, name, role }),
+                });
+                const data = await r.json();
+                if (!r.ok) { showToast(data.error || '创建失败'); return; }
+                showToast('账号已创建');
+                closeUserForm(); loadUsers(); collabUsersCache = [];
+            }
+        }
+
+        async function deleteUserAccount(id, name) {
+            if (!confirm(`确认删除成员「${name}」？该成员将无法登录。`)) return;
+            const r = await fetch('/api/collab/users/' + id, { method: 'DELETE' });
+            const data = await r.json();
+            if (!r.ok) { showToast(data.error || '删除失败'); return; }
+            showToast('已删除');
+            loadUsers(); collabUsersCache = [];
+        }
+
+        // ================= AI 初试管理 =================
+        const IV_STATUS = { scheduled: ['已预约', 'badge-blue'], in_progress: ['面试中', 'badge-orange'], completed: ['已完成', 'badge-green'], absent: ['缺席', 'badge-red'], cancelled: ['已取消', 'badge-gray'] };
+        const IV_PUNCT = { on_time: ['准时 · 10分', 'badge-green'], late_short: ['迟到15-30min · 6分', 'badge-orange'], late_long: ['迟到>30min · 3分', 'badge-red'], absent: ['缺席 · 0分', 'badge-red'], pending: ['待面试', 'badge-gray'] };
+        function ivCnDateStr(offsetDays) {
+            const n = new Date();
+            const d = new Date(n.getTime() + ((offsetDays || 0) * 86400000) + (n.getTimezoneOffset() * 60000) + 8 * 3600000);
+            return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+        }
+        function ivParseCn(iso) {
+            if (!iso) return '—';
+            const d = new Date(iso);
+            if (isNaN(d)) return iso;
+            const p = n => String(n).padStart(2, '0');
+            return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+        }
+
+        function loadInterviewPage() {
+            const startEl = document.getElementById('ivGenStart');
+            if (startEl && !startEl.value) startEl.value = ivCnDateStr(1);
+            ivLoadStats();
+            ivLoadSlots();
+            ivLoadSessions();
+        }
+
+        async function ivLoadStats() {
+            try {
+                const r = await fetch('/api/admin/interview/stats');
+                const s = await r.json();
+                if (!r.ok) { showToast(s.error || '统计加载失败'); return; }
+                document.getElementById('ivTotal').textContent = s.total || 0;
+                document.getElementById('ivCompleted').textContent = s.completed || 0;
+                document.getElementById('ivAbsent').textContent = s.absent || 0;
+                document.getElementById('ivPunctRate').textContent = (s.punctuality_rate != null ? s.punctuality_rate : 0) + '%';
+                document.getElementById('ivAvgOverall').textContent = s.avg_overall != null ? s.avg_overall : 0;
+                const badge = document.getElementById('interviewBadge');
+                const active = (s.in_progress || 0) + (s.absent || 0);
+                if (active > 0) { badge.style.display = ''; badge.textContent = active; } else { badge.style.display = 'none'; }
+            } catch (e) { console.error(e); }
+        }
+
+        async function ivGenerateSlots() {
+            const body = {
+                start: document.getElementById('ivGenStart').value || ivCnDateStr(1),
+                days: parseInt(document.getElementById('ivGenDays').value, 10) || 7,
+                start_hour: parseInt(document.getElementById('ivGenStartHour').value, 10) || 9,
+                end_hour: parseInt(document.getElementById('ivGenEndHour').value, 10) || 18,
+                slot_minutes: parseInt(document.getElementById('ivGenMinutes').value, 10) || 30,
+                capacity: parseInt(document.getElementById('ivGenCapacity').value, 10) || 3
+            };
+            if (!body.start) { showToast('请选择起始日期'); return; }
+            const r = await fetch('/api/admin/interview/slots', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+            const data = await r.json();
+            if (!r.ok) { showToast(data.error || '生成失败'); return; }
+            showToast('✅ 已生成 ' + data.generated + ' 个时段');
+            ivLoadSlots(); ivLoadStats();
+        }
+
+        async function ivLoadSlots() {
+            const r = await fetch('/api/admin/interview/slots');
+            const list = await r.json();
+            if (!r.ok) { showToast(list.error || '时段加载失败'); return; }
+            const body = document.getElementById('ivSlotBody');
+            const rows = Array.isArray(list) ? list : [];
+            body.innerHTML = rows.length ? rows.map(s => {
+                const st = s.status === 'open' ? '<span class="badge badge-green">开放</span>' : (s.status === 'full' ? '<span class="badge badge-orange">已约满</span>' : '<span class="badge badge-gray">已关闭</span>');
+                const canOpen = s.status !== 'open';
+                return `<tr>
+                    <td>${escapeHtml(String(s.date))}</td>
+                    <td>${String(s.start).slice(0,5)} - ${String(s.end).slice(0,5)}</td>
+                    <td>${s.capacity}</td>
+                    <td>${s.booked}</td>
+                    <td>${st}</td>
+                    <td>
+                        ${canOpen ? `<button class="btn btn-sm btn-secondary" onclick="ivToggleSlot(${s.id},'open')">开放</button>` : `<button class="btn btn-sm btn-outline" onclick="ivToggleSlot(${s.id},'closed')">关闭</button>`}
+                    </td>
+                </tr>`;
+            }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text-light);padding:24px">暂无时段，请先生成</td></tr>';
+        }
+
+        async function ivToggleSlot(id, status) {
+            const r = await fetch('/api/admin/interview/slots/' + id + 'status', { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status }) });
+            const data = await r.json();
+            if (!r.ok) { showToast(data.error || '操作失败'); return; }
+            showToast(status === 'open' ? '已开放' : '已关闭');
+            ivLoadSlots();
+        }
+
+        async function ivLoadSessions() {
+            const kw = document.getElementById('ivKeyword').value.trim();
+            const status = document.getElementById('ivStatusFilter').value;
+            let url = '/api/admin/interview/sessions';
+            const params = [];
+            if (kw) params.push('keyword=' + encodeURIComponent(kw));
+            if (status) params.push('status=' + encodeURIComponent(status));
+            if (params.length) url += '?' + params.join('&');
+            const r = await fetch(url);
+            const list = await r.json();
+            if (!r.ok) { showToast(list.error || '记录加载失败'); return; }
+            const body = document.getElementById('ivSessionBody');
+            const rows = Array.isArray(list) ? list : [];
+            body.innerHTML = rows.length ? rows.map(s => {
+                const st = IV_STATUS[s.status] || [s.status, 'badge-gray'];
+                const pt = IV_PUNCT[s.punctuality_label] || ['—', 'badge-gray'];
+                const score = s.overall_score != null ? s.overall_score : '—';
+                return `<tr>
+                    <td><b>${escapeHtml(s.candidate_name)}</b><br><span style="font-size:11px;color:var(--text-light)">${escapeHtml(s.candidate_phone)}</span></td>
+                    <td>${escapeHtml(s.applied_job || '—')}</td>
+                    <td>${escapeHtml(ivParseCn(s.scheduled_at))}</td>
+                    <td>${escapeHtml(ivParseCn(s.joined_at))}</td>
+                    <td><span class="badge ${st[1]}">${st[0]}</span></td>
+                    <td><span class="badge ${pt[1]}">${pt[0]}</span>${s.late_minutes ? `<br><span style="font-size:11px;color:var(--text-light)">迟到${s.late_minutes}min</span>` : ''}</td>
+                    <td><b style="color:#0077b3">${score}</b></td>
+                    <td><button class="btn btn-sm btn-outline" onclick="ivOpenDetail(${JSON.stringify(JSON.stringify(s))})">详情</button></td>
+                </tr>`;
+            }).join('') : '<tr><td colspan="8" style="text-align:center;color:var(--text-light);padding:24px">暂无面试记录</td></tr>';
+        }
+
+        function ivOpenDetail(jsonStr) {
+            let s;
+            try { s = JSON.parse(jsonStr); } catch (e) { return; }
+            const summary = (s.interview_summary && typeof s.interview_summary === 'object') ? s.interview_summary : {};
+            const scores = summary.scores || {};
+            const qs = Array.isArray(summary.questions) ? summary.questions : [];
+            const dims = summary.scores ? Object.keys(scores).map(k => {
+                const names = { match: '岗位匹配', express: '表达逻辑', learn: '专业学习', collab: '协作沟通', motive: '动机稳定', value: '价值观' };
+                return `<span class="tag">${names[k] || k} ${scores[k]}</span>`;
+            }).join('') : '';
+            const st = IV_STATUS[s.status] || [s.status, 'badge-gray'];
+            const pt = IV_PUNCT[s.punctuality_label] || ['—', 'badge-gray'];
+            document.getElementById('ivDetailModal').innerHTML = `
+                <div class="detail-modal-head">
+                    <h3>🤖 AI 初试详情</h3>
+                    <button class="btn btn-sm btn-outline" onclick="ivCloseDetail()">✕</button>
+                </div>
+                <div class="detail-modal-body" style="max-height:70vh;overflow-y:auto;padding:20px 24px;">
+                    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+                        <span class="badge ${st[1]}">${st[0]}</span>
+                        <span class="badge ${pt[1]}">准时：${pt[0]}</span>
+                        ${s.overall_score != null ? `<span class="badge badge-purple">综合分 ${s.overall_score}</span>` : ''}
+                    </div>
+                    <table class="data-table" style="font-size:13px;margin-bottom:16px;">
+                        <tbody>
+                            <tr><th style="width:90px">候选人</th><td>${escapeHtml(s.candidate_name)}（${escapeHtml(s.candidate_phone)}）</td></tr>
+                            <tr><th>意向岗位</th><td>${escapeHtml(s.applied_job || '—')}</td></tr>
+                            <tr><th>面试时间</th><td>${escapeHtml(ivParseCn(s.scheduled_at))}</td></tr>
+                            <tr><th>进入时间</th><td>${escapeHtml(ivParseCn(s.joined_at))}${s.late_minutes ? `（迟到 ${s.late_minutes} 分钟）` : ''}</td></tr>
+                            <tr><th>六维评分</th><td>${dims || '—'}</td></tr>
+                            ${summary.summary ? `<tr><th>评估摘要</th><td>${escapeHtml(summary.summary)}</td></tr>` : ''}
+                            ${summary.advice ? `<tr><th>HR 建议</th><td>${escapeHtml(summary.advice)}</td></tr>` : ''}
+                            ${summary.advice_text ? `<tr><th>候选人建议</th><td>${escapeHtml(summary.advice_text)}</td></tr>` : ''}
+                        </tbody>
+                    </table>
+                    ${qs.length ? `<h4 style="font-size:14px;margin-bottom:10px;">📝 问答记录</h4>` + qs.map((q, i) => `
+                        <div style="border:1px solid var(--border);border-radius:10px;padding:12px 14px;margin-bottom:10px;background:var(--white);">
+                            <div style="font-size:12px;color:#0077b3;font-weight:700;margin-bottom:4px;">Q${i+1} · ${escapeHtml(q.dim || '')}</div>
+                            <div style="font-size:13px;margin-bottom:8px;">${escapeHtml(q.text)}</div>
+                            <div style="font-size:12.5px;background:var(--secondary);border-radius:8px;padding:8px 10px;color:var(--text);white-space:pre-wrap;">${escapeHtml(q.answer || '（未作答）')}</div>
+                        </div>`).join('') : ''}
+                </div>`;
+            document.getElementById('ivDetailOverlay').style.display = 'flex';
+        }
+        function ivCloseDetail() { document.getElementById('ivDetailOverlay').style.display = 'none'; }
+
+        // 初始化（登录成功后由 onLoginSuccess 触发 loadStats）
+    </script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/supabase-api.js"></script>
+    <script src="js/api-fallback.js"></script>
+</body>
+</html>

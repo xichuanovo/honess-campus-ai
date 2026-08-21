@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>投递简历 | 泓济环保校招</title>
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        /* 水处理主题横幅 */
+        .page-header {
+            background: linear-gradient(135deg, #0077b3 0%, #009fe3 50%, #4ec5f1 100%);
+            color: white; padding: 30px 24px 26px; text-align: center;
+            position: relative; overflow: hidden;
+        }
+        .page-header::before {
+            content: ''; position: absolute; inset: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><g fill="none" stroke="rgba(255,255,255,0.06)" stroke-width="1.5"><path d="M40 10 C40 10 20 35 20 50 C20 65 30 75 40 75 C50 75 60 65 60 50 C60 35 40 10 40 10Z"/></g></svg>');
+            background-size: 80px 80px;
+        }
+        .page-header .header-content { position: relative; z-index: 1; }
+        .page-header .header-logo {
+            width: 60px; height: 60px; margin: 0 auto 10px;
+            background: rgba(255,255,255,0.96);
+            border-radius: 14px;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.18);
+        }
+        .page-header .header-logo img {
+            max-width: 46px; max-height: 38px; object-fit: contain;
+        }
+        @keyframes logo-float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+        .page-header h1 { font-size: 22px; font-weight: 800; margin-bottom: 6px; letter-spacing: 1px; }
+        .page-header .tagline {
+            font-size: 13px; opacity: 0.92; display: flex; align-items: center;
+            justify-content: center; gap: 8px; flex-wrap: wrap;
+        }
+        .page-header .tagline .pipe { opacity: 0.4; }
+        .page-header .tagline .highlight { color: #8dc63f; font-weight: 600; }
+        .page-header .official-btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            margin-top: 14px; padding: 8px 22px;
+            background: rgba(255,255,255,0.18);
+            border: 1.5px solid rgba(255,255,255,0.45);
+            border-radius: 24px;
+            color: #fff; font-size: 13px; font-weight: 600;
+            text-decoration: none; transition: all 0.3s;
+            backdrop-filter: blur(6px);
+        }
+        .page-header .official-btn:hover {
+            background: rgba(255,255,255,0.32);
+            border-color: #fff; transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(0,0,0,0.15);
+        }
+        .page-header .official-btn .ext-icon { font-size: 12px; opacity: 0.8; }
+
+        /* 无纸化环保横幅 */
+        .eco-banner {
+            max-width: 680px; margin: -20px auto 0; padding: 0 16px;
+            position: relative; z-index: 2;
+        }
+        .eco-banner-inner {
+            background: linear-gradient(135deg, #f0f9e8, #e8f5e9);
+            border: 1px solid #c8e6c9;
+            border-radius: 12px;
+            padding: 12px 20px;
+            display: flex; align-items: center; gap: 12px;
+            box-shadow: 0 4px 16px rgba(141,198,63,0.15);
+        }
+        .eco-banner-inner .eco-icon {
+            width: 36px; height: 36px; flex-shrink: 0;
+            background: linear-gradient(135deg, #8dc63f, #7cb342);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 18px;
+        }
+        .eco-banner-inner .eco-text { font-size: 13px; color: #2e7d32; line-height: 1.5; }
+        .eco-banner-inner .eco-text strong { font-weight: 700; }
+        .eco-banner-inner .eco-text .small { color: #558b2f; font-size: 12px; }
+        .eco-stats {
+            display: flex; gap: 8px; margin-top: 8px; flex-wrap: wrap;
+        }
+        .eco-stats .eco-stat {
+            display: inline-flex; align-items: center; gap: 4px;
+            background: rgba(141,198,63,0.12); border: 1px solid rgba(141,198,63,0.3);
+            border-radius: 8px; padding: 3px 10px; font-size: 12px; color: #33691e; font-weight: 600;
+        }
+        .eco-stats .eco-stat .num { color: #2e7d32; font-weight: 800; }
+
+        .apply-container { max-width: 680px; margin: 0 auto; padding: 24px 16px 60px; }
+
+        .step-indicator { display: flex; justify-content: center; gap: 8px; margin-bottom: 28px; }
+        .step-dot {
+            width: 36px; height: 36px; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: 700;
+            background: var(--border); color: var(--text-light);
+            transition: all 0.3s;
+        }
+        .step-dot.active {
+            background: linear-gradient(135deg, #009fe3, #0077b3);
+            color: white; box-shadow: 0 4px 12px rgba(0,159,227,0.3);
+        }
+        .step-dot.done { background: #8dc63f; color: white; }
+        .step-line { width: 40px; height: 3px; background: var(--border); align-self: center; border-radius: 2px; }
+        .step-line.done { background: #8dc63f; }
+
+        /* 上传区域美化 */
+        .upload-zone {
+            border: 2px dashed #b0d8e8; border-radius: 16px;
+            padding: 40px 24px; text-align: center; cursor: pointer;
+            transition: all 0.3s;
+            background: linear-gradient(180deg, #f0f9ff 0%, #e8f4f8 100%);
+            position: relative; overflow: hidden;
+        }
+        .upload-zone::before {
+            content: '🍃'; position: absolute; top: 12px; right: 16px;
+            font-size: 20px; opacity: 0.3;
+        }
+        .upload-zone:hover, .upload-zone.dragover {
+            border-color: #009fe3; background: linear-gradient(180deg, #e3f2fd 0%, #d5ebe1 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0,159,227,0.12);
+        }
+        .upload-zone .upload-icon {
+            font-size: 44px; margin-bottom: 12px;
+            display: inline-block; animation: bounce 2s ease-in-out infinite;
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-6px); }
+        }
+        .upload-zone h3 { font-size: 16px; color: #0077b3; margin-bottom: 6px; }
+        .upload-zone p { font-size: 13px; color: var(--text-light); }
+        .upload-zone .file-info { margin-top: 12px; padding: 10px 16px; background: var(--white); border-radius: 8px; display: inline-flex; align-items: center; gap: 8px; font-size: 14px; }
+        .upload-zone .eco-hint {
+            margin-top: 10px; font-size: 12px; color: #8dc63f; font-weight: 600;
+        }
+
+        .parsed-preview {
+            background: #e8f5e9; border: 1px solid #a5d6a7; border-radius: 10px;
+            padding: 16px; margin-top: 16px;
+        }
+        .parsed-preview .parsed-title { font-size: 14px; font-weight: 700; color: #2e7d32; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        .parsed-preview .parsed-fields { font-size: 13px; color: var(--text); }
+        .parsed-preview .parsed-fields div { padding: 2px 0; }
+
+        .job-select-card {
+            padding: 16px; background: linear-gradient(135deg, #f0f9ff, #e8f4f8);
+            border-radius: 10px; margin-bottom: 16px;
+            display: flex; align-items: center; gap: 12px;
+            border: 1px solid #d0e8f0;
+        }
+        .job-select-card .job-icon { font-size: 28px; }
+        .job-select-card .job-info { flex: 1; }
+        .job-select-card .job-info .j-title { font-weight: 700; font-size: 15px; }
+        .job-select-card .job-info .j-meta { font-size: 12px; color: var(--text-light); }
+
+        /* 成功页面美化 */
+        .success-screen { text-align: center; padding: 36px 20px; }
+        .success-screen .success-icon {
+            width: 80px; height: 80px; margin: 0 auto 20px;
+            background: linear-gradient(135deg, #8dc63f, #7cb342);
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 40px;
+            box-shadow: 0 8px 32px rgba(141,198,63,0.3);
+            animation: pop-in 0.5s ease;
+        }
+        .success-screen h2 { font-size: 24px; color: #0077b3; margin-bottom: 12px; }
+        .success-screen .success-desc { font-size: 15px; color: var(--text-light); margin-bottom: 20px; line-height: 1.8; }
+        .success-screen .eco-impact {
+            background: linear-gradient(135deg, #f0f9e8, #e8f5e9);
+            border: 1px solid #c8e6c9; border-radius: 12px;
+            padding: 16px; margin-bottom: 20px; display: flex;
+            align-items: center; justify-content: center; gap: 10px;
+        }
+        .success-screen .eco-impact .impact-icon {
+            width: 32px; height: 32px; background: #8dc63f; border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            color: #fff; font-size: 16px; flex-shrink: 0;
+        }
+        .success-screen .eco-impact .impact-text {
+            font-size: 13px; color: #2e7d32; text-align: left; line-height: 1.5;
+        }
+        .success-screen .eco-impact .impact-text strong { font-weight: 700; }
+        .success-screen .candidate-id {
+            font-size: 13px; color: var(--text-light); margin-bottom: 20px;
+            font-family: "Courier New", monospace; letter-spacing: 1px;
+        }
+        .success-screen .ai-interview-cta {
+            background: linear-gradient(135deg, #e8f4fd, #f0f9ff);
+            border: 1.5px solid #009fe3; border-radius: 14px;
+            padding: 18px; margin-bottom: 18px; display: flex; align-items: center;
+            gap: 14px; text-align: left; box-shadow: 0 4px 16px rgba(0,159,227,0.1);
+        }
+        .success-screen .ai-interview-cta .ai-cta-icon {
+            width: 46px; height: 46px; border-radius: 12px; flex-shrink: 0;
+            background: linear-gradient(135deg, #009fe3, #0077b3);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 22px; color: #fff;
+        }
+        .success-screen .ai-interview-cta strong { font-size: 15px; color: #0077b3; display: block; margin-bottom: 4px; }
+        .success-screen .ai-interview-cta p { font-size: 12.5px; color: var(--text-light); line-height: 1.7; margin-bottom: 10px; }
+        .success-screen .ai-interview-cta .btn { font-size: 14px; padding: 10px 22px; }
+        .success-screen .next-steps { text-align: left; max-width: 420px; margin: 0 auto; }
+        .success-screen .next-steps h4 { font-size: 15px; margin-bottom: 12px; color: var(--text); }
+        .success-screen .next-steps a {
+            display: block; padding: 14px 20px;
+            background: linear-gradient(135deg, #f0f9ff, #e8f4f8);
+            border: 1px solid #d0e8f0; border-radius: 10px;
+            margin-bottom: 8px; font-size: 14px; transition: all 0.2s;
+        }
+        .success-screen .next-steps a:hover {
+            background: linear-gradient(135deg, #e3f2fd, #d5ebe1);
+            transform: translateX(4px);
+        }
+
+        .form-actions { display: flex; gap: 12px; justify-content: space-between; margin-top: 24px; }
+
+        /* 水处理工艺小图标条 — 紧凑单行，竖屏不换行 */
+        .water-process-bar {
+            display: flex; align-items: center; justify-content: center;
+            gap: 5px; margin-top: 10px; white-space: nowrap;
+        }
+        .water-process-bar .wp-item {
+            display: inline-flex; align-items: center; gap: 3px;
+            font-size: 11px; color: rgba(255,255,255,0.82); font-weight: 500;
+            padding: 3px 8px; background: rgba(255,255,255,0.12);
+            border-radius: 10px;
+        }
+        .water-process-bar .wp-arrow { color: rgba(255,255,255,0.45); font-size: 11px; }
+
+        /* 水处理工艺展示区（紧凑好看版） */
+        .wp-showcase {
+            background: linear-gradient(135deg, #f0f9ff, #e8f4f8);
+            border-radius: 16px; padding: 18px 16px; margin: 16px auto;
+            max-width: 760px; border: 1px solid #d0e8f0;
+        }
+        .wp-showcase h3 { text-align: center; font-size: 15px; color: #0077b3; margin-bottom: 14px; font-weight: 700; }
+        .wp-flow { display: flex; align-items: flex-start; justify-content: center; gap: 4px; flex-wrap: wrap; }
+        .wp-flow .pf-node {
+            display: flex; flex-direction: column; align-items: center; gap: 5px; min-width: 64px;
+        }
+        .wp-flow .pf-icon {
+            width: 40px; height: 40px; border-radius: 50%;
+            background: white; display: flex; align-items: center; justify-content: center;
+            font-size: 18px; box-shadow: 0 3px 10px rgba(0,159,227,0.12);
+            border: 2px solid #b0d8e8; transition: all 0.3s;
+        }
+        .wp-flow .pf-node:hover .pf-icon {
+            border-color: #009fe3; transform: translateY(-3px) scale(1.05);
+        }
+        .wp-flow .pf-label { font-size: 11px; font-weight: 600; color: #0077b3; white-space: nowrap; }
+        .wp-flow .pf-desc { font-size: 9px; color: #8a9ba5; white-space: nowrap; }
+        .wp-flow .pf-arrow { color: #b0d8e8; font-size: 16px; margin-top: 12px; }
+        .wp-apply-btn {
+            display: block; margin: 16px auto 0; padding: 11px 36px;
+            background: linear-gradient(135deg, #009fe3, #0077b3); color: #fff;
+            border: none; border-radius: 24px; font-size: 15px; font-weight: 600;
+            cursor: pointer; box-shadow: 0 6px 18px rgba(0,159,227,0.3);
+            transition: all 0.25s;
+        }
+        .wp-apply-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,159,227,0.42); }
+        .wp-showcase.collapsed { display: none; }
+        .upload-zone.dragover {
+            border-color: #009fe3 !important;
+            background: #e8f6ff !important;
+            transform: scale(1.02);
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a class="navbar-brand" href="index.html">
+                <img class="brand-logo" src="images/honess-logo.png" alt="HONESS 泓济环保">
+                <div class="brand-name">校园招聘<small>HONESS Campus Recruitment</small></div>
+            </a>
+            <button class="navbar-toggle" aria-label="菜单" onclick="this.classList.toggle('active');document.getElementById('mainNav').classList.toggle('open')">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="navbar-links" id="mainNav">
+                <a href="index.html">首页</a>
+                <a href="jobs.html">招聘岗位</a>
+                <a href="apply.html" class="active">投递简历</a>
+                <a href="mbti.html">性格测试</a>
+                <a href="schedule.html">AI初试</a>
+                <a href="admin.html" class="admin-btn">HR管理</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="page-header">
+        <div class="header-content">
+            <div class="header-logo">
+                <img src="images/honess-logo.png" alt="泓济环保 HONESS">
+            </div>
+            <h1>投递简历</h1>
+            <div class="tagline">
+                <span>专注水处理</span>
+                <span class="pipe">|</span>
+                <span>工业废水 · 市政污水</span>
+                <span class="pipe">|</span>
+                <span class="highlight">绿色招聘</span>
+            </div>
+            <a href="https://www.honess.cn" target="_blank" rel="noopener" class="official-btn">
+                🏢 了解泓济环保 <span class="ext-icon">↗</span>
+            </a>
+        </div>
+    </div>
+
+    <!-- 无纸化环保横幅 -->
+    <div class="eco-banner">
+        <div class="eco-banner-inner">
+            <div class="eco-icon">♻</div>
+            <div class="eco-text">
+                <strong>无纸化投递 · 绿色招聘</strong>
+                <div class="small">每投递一份电子简历，相当于为地球节省：</div>
+                <div class="eco-stats">
+                    <span class="eco-stat">📄 <span class="num">2</span> 张 A4 纸</span>
+                    <span class="eco-stat">💧 <span class="num">10</span> L 造纸用水</span>
+                    <span class="eco-stat">🌫 <span class="num">5</span> g 碳排放</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 水处理工艺展示 -->
+    <div class="wp-showcase" id="wpShowcase">
+        <h3>💧 我们做什么 — 水处理全流程</h3>
+        <div class="wp-flow">
+            <div class="pf-node">
+                <div class="pf-icon">🌊</div>
+                <div class="pf-label">进水</div>
+                <div class="pf-desc">工业/市政废水</div>
+            </div>
+            <div class="pf-arrow">→</div>
+            <div class="pf-node">
+                <div class="pf-icon">⚗️</div>
+                <div class="pf-label">预处理</div>
+                <div class="pf-desc">混凝/絮凝</div>
+            </div>
+            <div class="pf-arrow">→</div>
+            <div class="pf-node">
+                <div class="pf-icon">🧬</div>
+                <div class="pf-label">生化处理</div>
+                <div class="pf-desc">厌氧/好氧</div>
+            </div>
+            <div class="pf-arrow">→</div>
+            <div class="pf-node">
+                <div class="pf-icon">🔬</div>
+                <div class="pf-label">深度处理</div>
+                <div class="pf-desc">膜分离/氧化</div>
+            </div>
+            <div class="pf-arrow">→</div>
+            <div class="pf-node">
+                <div class="pf-icon">💧</div>
+                <div class="pf-label">中水回用</div>
+                <div class="pf-desc">回用 / 零排放</div>
+            </div>
+        </div>
+        <button class="wp-apply-btn" onclick="startApply()">立即投递 →</button>
+    </div>
+
+    <div class="apply-container">
+        <div class="step-indicator">
+            <div class="step-dot active" id="step1Dot">1</div>
+            <div class="step-line" id="step1Line"></div>
+            <div class="step-dot" id="step2Dot">2</div>
+            <div class="step-line" id="step2Line"></div>
+            <div class="step-dot" id="step3Dot">3</div>
+        </div>
+
+        <!-- Step 1: Basic Info + Resume Upload -->
+        <div id="step1" class="card fade-in">
+            <h2 style="font-size: 20px; margin-bottom: 20px; color: #0077b3;">基本信息</h2>
+
+            <div id="appliedJobInfo" style="display:none;">
+                <div class="job-select-card" id="appliedJobCard">
+                    <div class="job-icon">📋</div>
+                    <div class="job-info">
+                        <div class="j-title" id="appliedJobTitle"></div>
+                        <div class="j-meta" id="appliedJobMeta"></div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>姓名 <span class="required">*</span></label>
+                    <input type="text" id="name" placeholder="请输入姓名" required>
+                </div>
+                <div class="form-group">
+                    <label>性别</label>
+                    <select id="gender">
+                        <option value="">请选择</option>
+                        <option value="男">男</option>
+                        <option value="女">女</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>手机号 <span class="required">*</span></label>
+                    <input type="tel" id="phone" placeholder="11位手机号" required>
+                </div>
+                <div class="form-group">
+                    <label>邮箱</label>
+                    <input type="email" id="email" placeholder="电子邮箱">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>学历 <span class="required">*</span></label>
+                    <select id="education" required>
+                        <option value="">请选择</option>
+                        <option value="bachelor">本科</option>
+                        <option value="master">硕士</option>
+                        <option value="phd">博士</option>
+                        <option value="postdoc">博士后</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>毕业年份</label>
+                    <select id="graduation_year">
+                        <option value="">请选择</option>
+                        <option value="2026">2026届</option>
+                        <option value="2027">2027届</option>
+                        <option value="2028">2028届</option>
+                        <option value="2025">2025届</option>
+                        <option value="2024">2024届</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>学校</label>
+                    <input type="text" id="school" placeholder="毕业院校">
+                </div>
+                <div class="form-group">
+                    <label>专业</label>
+                    <input type="text" id="major" placeholder="所学专业">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>意向方向</label>
+                <select id="preferred_category">
+                    <option value="">请选择意向方向</option>
+                    <option value="tech">技术研发类</option>
+                    <option value="project">项目工程类</option>
+                    <option value="business">商务市场类</option>
+                    <option value="operations">运营服务类</option>
+                    <option value="support">职能支持类</option>
+                </select>
+            </div>
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>籍贯</label>
+                    <input type="text" id="native_place" placeholder="如：江苏南京">
+                </div>
+                <div class="form-group">
+                    <label>期望工作地</label>
+                    <select id="preferred_location">
+                        <option value="">请选择</option>
+                        <option value="上海">上海</option>
+                        <option value="安徽">安徽</option>
+                        <option value="山西">山西</option>
+                        <option value="新疆">新疆</option>
+                        <option value="全国">服从全国调配</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label>上传简历 <span style="font-weight:400;color:var(--text-light);font-size:12px;">（PDF格式，系统将自动解析）</span></label>
+                <div class="upload-zone" id="uploadZone" onclick="document.getElementById('resumeFile').click()">
+                    <div class="upload-icon">📄</div>
+                    <h3>点击或拖拽上传简历</h3>
+                    <p>支持 PDF 格式，文件大小不超过 20MB</p>
+                    <div class="eco-hint">♻ 电子简历 · 无纸化投递 · 为环保出一份力</div>
+                    <input type="file" id="resumeFile" accept=".pdf,.txt" style="display:none" onchange="handleFileSelect(event)">
+                </div>
+                <div id="parsedPreview" style="display:none;"></div>
+            </div>
+
+            <div class="form-group">
+                <label>自我介绍（选填）</label>
+                <textarea id="self_intro" placeholder="简单介绍一下自己，包括实习经历、项目经验、获奖情况等..."></textarea>
+            </div>
+
+            <div class="form-actions">
+                <a href="jobs.html" class="btn btn-outline">← 返回岗位列表</a>
+                <button class="btn btn-primary" onclick="submitApplication()">提交投递 →</button>
+            </div>
+        </div>
+
+        <!-- Step 3: Success -->
+        <div id="step3" class="card hidden">
+            <div class="success-screen">
+                <div class="success-icon">✓</div>
+                <h2>投递成功！</h2>
+                <p class="success-desc">感谢你的投递，我们已收到你的简历。<br>HR将在5个工作日内进行筛选，请保持手机畅通。</p>
+
+                <div class="eco-impact">
+                    <div class="impact-icon">🌱</div>
+                    <div class="impact-text">
+                        <strong>你已为环保贡献一份力量</strong><br>
+                        本次电子投递节省约 <strong>2 张纸 · 10L 水 · 5g 碳排放</strong>
+                    </div>
+                </div>
+
+                <div class="candidate-id" id="candidateId"></div>
+
+                <!-- AI 初试预约引导 -->
+                <div class="ai-interview-cta">
+                    <div class="ai-cta-icon">🎤</div>
+                    <div>
+                        <strong>AI 数字人初试 · 线上自助参加</strong>
+                        <p>投递完成后即可自行选择面试时段，AI 面试官「泓宝」将与你一对一交流，全程约 30 分钟。请按约定时间准时参加，守时表现将纳入综合评估。</p>
+                    </div>
+                    <a href="schedule.html" id="interviewLink" class="btn btn-primary">立即预约 AI 初试 →</a>
+                </div>
+
+                <div class="next-steps">
+                    <h4>接下来你还可以：</h4>
+                    <a href="mbti.html?candidate_id=" id="mbtiLink" style="color:var(--primary);">→ 完成MBTI职业性格测试（推荐，有助于岗位匹配）</a>
+                    <a href="jobs.html" style="color:var(--primary);">→ 继续浏览其他岗位</a>
+                    <a href="index.html" style="color:var(--primary);">→ 返回首页</a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay" style="display:none;">
+        <div class="spinner"></div>
+        <p id="loadingText">正在提交...</p>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <script>
+        const urlParams = new URLSearchParams(location.search);
+        const appliedJobId = urlParams.get('job_id');
+        let selectedFile = null;
+        let parsedResult = null;
+
+        // ===== 表单记忆功能：避免重复投递时重新填写 =====
+        const FORM_STORAGE_KEY = 'honess_apply_form_draft';
+        const FORM_FIELDS = ['name', 'phone', 'email', 'gender', 'education', 'graduation_year', 'school', 'major', 'preferred_category', 'preferred_location', 'native_place', 'self_intro'];
+
+        function saveFormDraft() {
+            const data = {};
+            FORM_FIELDS.forEach(id => {
+                const el = document.getElementById(id);
+                if (el && el.value) data[id] = el.value;
+            });
+            try { localStorage.setItem(FORM_STORAGE_KEY, JSON.stringify(data)); } catch {}
+        }
+
+        function restoreFormDraft() {
+            let data = null;
+            try { data = JSON.parse(localStorage.getItem(FORM_STORAGE_KEY)); } catch {}
+            if (!data) return false;
+            let restored = 0;
+            FORM_FIELDS.forEach(id => {
+                const el = document.getElementById(id);
+                if (el && data[id] && !el.value) { el.value = data[id]; restored++; }
+            });
+            return restored > 0;
+        }
+
+        function clearFormDraft() {
+            try { localStorage.removeItem(FORM_STORAGE_KEY); } catch {}
+        }
+
+        // 页面加载时恢复上次填写的内容
+        (function initFormMemory() {
+            if (restoreFormDraft()) {
+                setTimeout(() => showToast('已自动恢复你上次填写的信息，请确认后直接提交'), 500);
+            }
+            // 监听所有表单字段变化，自动保存
+            FORM_FIELDS.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.addEventListener('change', saveFormDraft);
+                if (el) el.addEventListener('blur', saveFormDraft);
+            });
+        })();
+
+        // 点击"立即投递"：收起公司业务流程图，平滑滚动到投递表单
+        function startApply() {
+            const showcase = document.getElementById('wpShowcase');
+            if (showcase) showcase.classList.add('collapsed');
+            const form = document.querySelector('.apply-container');
+            if (form) form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        if (appliedJobId) {
+            fetch('/api/jobs/' + appliedJobId).then(r => r.json()).then(job => {
+                if (job && !job.error) {
+                    document.getElementById('appliedJobInfo').style.display = 'block';
+                    document.getElementById('appliedJobTitle').textContent = job.title;
+                    const eduLabels = { bachelor: '本科', master: '硕士', phd: '博士', postdoc: '博士后' };
+                    document.getElementById('appliedJobMeta').textContent = `${eduLabels[job.education_min]}及以上 · ${job.location || '不限'} · ${job.salary_range || '面议'}`;
+                }
+            });
+        }
+
+        function handleFileSelect(event) {
+            let file = null;
+            // 兼容拖拽（dataTransfer）和点击选择（target.files）
+            if (event.dataTransfer && event.dataTransfer.files && event.dataTransfer.files.length) {
+                file = event.dataTransfer.files[0];
+            } else if (event.target && event.target.files && event.target.files.length) {
+                file = event.target.files[0];
+            }
+            if (!file) return;
+            // 类型与大小校验
+            if (!/\.(pdf|txt)$/i.test(file.name)) { showToast('仅支持 PDF 或 TXT 格式的简历'); return; }
+            if (file.size > 20 * 1024 * 1024) { showToast('文件不能超过 20MB'); return; }
+            selectedFile = file;
+            const zone = document.getElementById('uploadZone');
+            zone.classList.remove('dragover');
+            zone.innerHTML = `
+                <div class="upload-icon">📄</div>
+                <h3>${file.name}</h3>
+                <p>${(file.size / 1024).toFixed(1)} KB · 点击重新选择</p>
+                <div class="eco-hint">♻ 电子简历 · 无纸化投递 · 为环保出一份力</div>
+                <input type="file" id="resumeFile" accept=".pdf,.txt" style="display:none" onchange="handleFileSelect(event)">
+            `;
+            autoFillFromResume(file);
+        }
+
+        // 初始化拖拽上传：阻止浏览器默认"打开文件"行为，支持拖入文件
+        (function initDropZone() {
+            var zone = document.getElementById('uploadZone');
+            if (!zone) return;
+            ['dragenter', 'dragover'].forEach(function(ev) {
+                zone.addEventListener(ev, function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    zone.classList.add('dragover');
+                });
+            });
+            ['dragleave', 'drop'].forEach(function(ev) {
+                zone.addEventListener(ev, function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    zone.classList.remove('dragover');
+                });
+            });
+            zone.addEventListener('drop', function(e) {
+                handleFileSelect(e);
+            });
+        })();
+
+        // 上传即解析：优先前端解析（pdf.js），降级到后端解析接口
+        function autoFillFromResume(file) {
+            const preview = document.getElementById('parsedPreview');
+            if (preview) preview.style.display = 'none';
+            showLoading('正在解析简历...');
+
+            const handleParsed = function (data) {
+                hideLoading();
+                if (!data.success) { showToast(data.message || '解析失败，请手动填写'); return; }
+                parsedResult = data;
+                fillFormFromParsed(data);
+                showParsedPreview(data);
+                saveFormDraft(); // 解析填充后保存草稿
+                showToast('简历已自动解析并填充');
+            };
+
+            // 云模式：前端 pdf.js 解析（无需后端）
+            if (window.ResumeParser && typeof ResumeParser.parseFile === 'function') {
+                ResumeParser.parseFile(file)
+                    .then(handleParsed)
+                    .catch(function () { hideLoading(); showToast('解析失败，请手动填写'); });
+                return;
+            }
+
+            // 降级：本地服务器模式，调用后端解析接口
+            const fd = new FormData();
+            fd.append('resume', file);
+            fetch('/api/resume/parse', { method: 'POST', body: fd })
+                .then(r => r.json())
+                .then(handleParsed)
+                .catch(function () { hideLoading(); showToast('解析失败，请手动填写'); });
+        }
+
+        // 把解析出的信息自动填入表单（仅填空字段，不覆盖已输入内容）
+        function fillFormFromParsed(data) {
+            const setVal = (id, val) => {
+                if (!val) return;
+                const el = document.getElementById(id);
+                if (el && !el.value) el.value = val;
+            };
+            setVal('name', data.name);
+            setVal('phone', data.phone);
+            setVal('email', data.email);
+            setVal('school', data.school);
+            setVal('major', data.major);
+            // 下拉框匹配（按 value 或文字匹配，已选则不覆盖）
+            const matchSelect = (id, val) => {
+                if (!val) return;
+                const sel = document.getElementById(id);
+                if (!sel || sel.value) return;
+                const v = String(val).trim();
+                for (const opt of sel.options) {
+                    if (opt.value === v || opt.text === v || opt.text.includes(v) || v.includes(opt.text)) {
+                        sel.value = opt.value;
+                        return;
+                    }
+                }
+            };
+            matchSelect('gender', data.gender);
+            matchSelect('education', data.education);
+            matchSelect('graduation_year', data.graduationYear);
+            // 技能/经历补充到自我介绍（仅当自我介绍为空时）
+            if ((data.skills && data.skills.length) || data.experience) {
+                const intro = document.getElementById('self_intro');
+                if (intro && !intro.value) {
+                    let parts = [];
+                    if (data.skills && data.skills.length) parts.push('技能：' + data.skills.join('、'));
+                    if (data.experience) parts.push('经历：' + data.experience);
+                    intro.value = parts.join('\n');
+                }
+            }
+        }
+
+        // 显示解析预览卡片
+        function showParsedPreview(data) {
+            const preview = document.getElementById('parsedPreview');
+            if (!preview) return;
+            const fields = [];
+            if (data.name) fields.push(['姓名', data.name]);
+            if (data.phone) fields.push(['手机', data.phone]);
+            if (data.email) fields.push(['邮箱', data.email]);
+            if (data.school) fields.push(['学校', data.school]);
+            if (data.major) fields.push(['专业', data.major]);
+            if (data.education) fields.push(['学历', data.education]);
+            if (data.graduationYear) fields.push(['毕业年份', data.graduationYear]);
+            if (data.skills && data.skills.length) fields.push(['技能', data.skills.join('、')]);
+            if (fields.length === 0) { preview.style.display = 'none'; return; }
+            preview.innerHTML = '<div class="parsed-preview"><div class="parsed-title">✓ 简历已解析</div><div class="parsed-fields">' +
+                fields.map(f => '<div><strong>' + f[0] + '：</strong>' + f[1] + '</div>').join('') +
+                '</div></div>';
+            preview.style.display = 'block';
+        }
+
+        function showLoading(text) {
+            document.getElementById('loadingText').textContent = text;
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+        function hideLoading() { document.getElementById('loadingOverlay').style.display = 'none'; }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+
+        function submitApplication() {
+            const name = document.getElementById('name').value.trim();
+            const phone = document.getElementById('phone').value.trim();
+            const education = document.getElementById('education').value;
+
+            if (!name) { showToast('请输入姓名'); return; }
+            if (!phone) { showToast('请输入手机号'); return; }
+            if (!education) { showToast('请选择学历'); return; }
+
+            showLoading('正在提交简历...');
+
+            const formData = new FormData();
+            formData.append('name', name);
+            formData.append('phone', phone);
+            formData.append('email', document.getElementById('email').value);
+            formData.append('gender', document.getElementById('gender').value);
+            formData.append('education', education);
+            formData.append('graduation_year', document.getElementById('graduation_year').value);
+            formData.append('school', document.getElementById('school').value);
+            formData.append('major', document.getElementById('major').value);
+            formData.append('preferred_category', document.getElementById('preferred_category').value);
+            formData.append('preferred_location', document.getElementById('preferred_location').value);
+            formData.append('native_place', document.getElementById('native_place').value);
+            formData.append('self_intro', document.getElementById('self_intro').value);
+            formData.append('source', 'online');
+            if (appliedJobId) formData.append('applied_job_id', appliedJobId);
+            if (selectedFile) {
+                formData.append('resume', selectedFile);
+                formData.append('resume_name', selectedFile.name);
+            }
+            if (parsedResult) formData.append('parsed_json', JSON.stringify(parsedResult));
+
+            fetch('/api/candidates/apply', { method: 'POST', body: formData })
+                .then(r => r.json())
+                .then(data => {
+                    hideLoading();
+                    if (data.error) { showToast(data.error); return; }
+
+                    clearFormDraft(); // 提交成功后清除草稿
+
+                    document.getElementById('step1').classList.add('hidden');
+                    document.getElementById('step3').classList.remove('hidden');
+                    document.getElementById('step3').classList.add('fade-in');
+                    document.getElementById('step1Dot').classList.remove('active');
+                    document.getElementById('step1Dot').classList.add('done');
+                    document.getElementById('step1Line').classList.add('done');
+                    document.getElementById('step2Dot').classList.add('done');
+                    document.getElementById('step2Line').classList.add('done');
+                    document.getElementById('step3Dot').classList.add('active');
+
+                    document.getElementById('candidateId').textContent = '投递编号：HJ-' + String(data.id).padStart(6, '0');
+                    const mbtiLink = document.getElementById('mbtiLink');
+                    mbtiLink.href = 'mbti.html?candidate_id=' + data.id;
+                    const interviewLink = document.getElementById('interviewLink');
+                    const jobTitleEl = document.getElementById('appliedJobTitle');
+                    const jobTitle = jobTitleEl ? jobTitleEl.textContent.trim() : '';
+                    interviewLink.href = 'schedule.html?candidate_id=' + data.id + '&name=' + encodeURIComponent(name) + '&job=' + encodeURIComponent(jobTitle);
+
+                    if (data.parsed && data.parsedData) {
+                        showToast('简历已自动解析');
+                    }
+
+                    window.scrollTo(0, 0);
+                })
+                .catch(err => {
+                    hideLoading();
+                    showToast('提交失败，请重试');
+                });
+        }
+    </script>
+    <script src="js/pdf.min.js"></script>
+    <script src="js/resume-parser-client.js"></script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/supabase-api.js"></script>
+    <script src="js/api-fallback.js"></script>
+</body>
+</html>

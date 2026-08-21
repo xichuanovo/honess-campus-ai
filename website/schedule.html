@@ -1,0 +1,578 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>预约 AI 初试 | 泓济环保校招</title>
+    <link rel="stylesheet" href="css/main.css">
+    <style>
+        /* ===== 预约页：泓济水主题 ===== */
+        .iv-hero {
+            background: linear-gradient(135deg, #005b88 0%, #0077b3 35%, #009fe3 70%, #4ec5f1 100%);
+            color: white; padding: 56px 24px 72px; text-align: center; position: relative; overflow: hidden;
+        }
+        .iv-hero::before {
+            content: ''; position: absolute; inset: 0;
+            background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" width="80" height="80" viewBox="0 0 80 80"><g fill="none" stroke="rgba(255,255,255,0.05)" stroke-width="1.5"><path d="M40 8 C40 8 18 34 18 50 C18 66 28 76 40 76 C52 76 62 66 62 50 C62 34 40 8 40 8Z"/><circle cx="40" cy="50" r="12"/></g></svg>');
+            background-size: 80px;
+        }
+        .iv-hero .inner { position: relative; z-index: 2; max-width: 760px; margin: 0 auto; }
+        .iv-hero .iv-badge {
+            display: inline-block; background: rgba(255,255,255,0.15); border: 1px solid rgba(255,255,255,0.3);
+            border-radius: 20px; padding: 4px 16px; font-size: 13px; margin-bottom: 14px; backdrop-filter: blur(4px);
+        }
+        .iv-hero h1 { font-size: 30px; font-weight: 800; margin-bottom: 10px; letter-spacing: 1px; }
+        .iv-hero p { font-size: 15px; opacity: 0.92; line-height: 1.8; }
+
+        .iv-body { max-width: 980px; margin: -36px auto 0; padding: 0 20px 60px; position: relative; z-index: 3; }
+
+        /* 顶部信息卡（候选人/查询切换） */
+        .iv-topbar {
+            background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow);
+            padding: 22px 26px; margin-bottom: 22px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+        }
+        .iv-topbar .who { display: flex; align-items: center; gap: 12px; }
+        .iv-topbar .who .w-avatar {
+            width: 44px; height: 44px; border-radius: 50%; background: linear-gradient(135deg, #009fe3, #0077b3);
+            color: white; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; flex-shrink: 0;
+        }
+        .iv-topbar .who .w-name { font-size: 16px; font-weight: 700; }
+        .iv-topbar .who .w-sub { font-size: 12.5px; color: var(--text-light); }
+        .iv-tabs { display: flex; gap: 8px; background: var(--secondary); padding: 4px; border-radius: 12px; }
+        .iv-tabs button {
+            border: none; background: transparent; padding: 8px 18px; border-radius: 9px; font-size: 14px; font-weight: 600;
+            color: var(--text-light); cursor: pointer; transition: all 0.2s; font-family: inherit;
+        }
+        .iv-tabs button.active { background: var(--white); color: var(--primary-dark); box-shadow: 0 2px 8px rgba(0,0,0,0.08); }
+
+        /* 规则说明条 */
+        .rule-strip {
+            background: linear-gradient(135deg, #f0f9ff, #eef9ee); border: 1px solid #d0e8f0; border-radius: 14px;
+            padding: 16px 20px; margin-bottom: 22px; display: flex; gap: 14px; align-items: flex-start;
+        }
+        .rule-strip .r-icon { font-size: 24px; line-height: 1.2; }
+        .rule-strip .r-title { font-size: 14px; font-weight: 700; color: #0077b3; margin-bottom: 6px; }
+        .rule-strip .r-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; }
+        .rule-strip .r-item { background: rgba(255,255,255,0.75); border-radius: 10px; padding: 8px 10px; text-align: center; }
+        .rule-strip .r-item .sc { font-size: 15px; font-weight: 800; color: #0077b3; }
+        .rule-strip .r-item .lb { font-size: 11.5px; color: var(--text-light); margin-top: 2px; }
+        .rule-strip .r-note { font-size: 12px; color: var(--text-light); margin-top: 8px; line-height: 1.7; }
+
+        .iv-card { background: var(--white); border-radius: var(--radius); box-shadow: var(--shadow); padding: 26px; margin-bottom: 22px; }
+        .iv-card h3 { font-size: 17px; font-weight: 700; color: var(--text); margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+        .iv-card .sub { font-size: 13px; color: var(--text-light); margin-bottom: 18px; }
+        .iv-card h3 .step-pill {
+            background: linear-gradient(135deg, #009fe3, #0077b3); color: white; font-size: 11px; font-weight: 700;
+            border-radius: 10px; padding: 2px 10px;
+        }
+
+        /* 日期选择 */
+        .date-row { display: flex; gap: 10px; overflow-x: auto; padding-bottom: 8px; }
+        .date-chip {
+            flex: 0 0 auto; min-width: 78px; text-align: center; padding: 10px 8px; border-radius: 12px; cursor: pointer;
+            border: 2px solid var(--border); background: var(--white); transition: all 0.2s;
+        }
+        .date-chip .d-week { font-size: 11px; color: var(--text-light); }
+        .date-chip .d-date { font-size: 15px; font-weight: 700; color: var(--text); }
+        .date-chip .d-cnt { font-size: 10.5px; color: #27ae60; }
+        .date-chip:hover { border-color: #b0d8e8; }
+        .date-chip.active { border-color: var(--primary); background: var(--secondary); box-shadow: 0 4px 12px rgba(0,159,227,0.15); }
+        .date-chip.disabled { opacity: 0.45; pointer-events: none; }
+
+        /* 时段格子 */
+        .slot-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px; }
+        .slot-item {
+            border: 2px solid var(--border); border-radius: 12px; padding: 12px 10px; text-align: center; cursor: pointer;
+            transition: all 0.2s; background: var(--white);
+        }
+        .slot-item .t-main { font-size: 15px; font-weight: 700; color: var(--text); }
+        .slot-item .t-sub { font-size: 11.5px; color: var(--text-light); margin-top: 3px; }
+        .slot-item .t-left { font-size: 11px; color: #27ae60; margin-top: 2px; }
+        .slot-item:hover { border-color: #b0d8e8; transform: translateY(-2px); }
+        .slot-item.active { border-color: var(--primary); background: var(--secondary); box-shadow: 0 4px 14px rgba(0,159,227,0.18); }
+        .slot-item.full { opacity: 0.45; cursor: not-allowed; }
+        .slot-item.closed { opacity: 0.45; cursor: not-allowed; }
+
+        /* 预约确认条 */
+        .book-bar {
+            position: sticky; bottom: 16px; background: var(--white); border-radius: 14px; box-shadow: var(--shadow-lg);
+            padding: 14px 20px; display: flex; align-items: center; justify-content: space-between; gap: 16px; flex-wrap: wrap;
+            border: 2px solid #b0d8e8;
+        }
+        .book-bar .bb-info { font-size: 14px; color: var(--text); }
+        .book-bar .bb-info b { color: #0077b3; }
+        .book-bar .bb-hint { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+
+        /* 预约成功面板 */
+        .book-ok { text-align: center; padding: 10px 0 4px; }
+        .book-ok .ok-icon { font-size: 56px; margin-bottom: 10px; animation: popIn 0.5s ease; }
+        .book-ok h2 { font-size: 22px; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+        .book-ok .ok-sub { font-size: 14px; color: var(--text-light); margin-bottom: 20px; }
+        .code-box {
+            display: inline-block; background: linear-gradient(135deg, #f0f9ff, #eef9ee); border: 2px dashed #009fe3;
+            border-radius: 14px; padding: 14px 36px; margin-bottom: 18px;
+        }
+        .code-box .cb-label { font-size: 12px; color: var(--text-light); letter-spacing: 2px; }
+        .code-box .cb-code { font-size: 34px; font-weight: 800; letter-spacing: 8px; color: #0077b3; margin-top: 2px; }
+        .ok-meta { display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; margin-bottom: 22px; }
+        .ok-meta .om {
+            background: var(--secondary); border-radius: 10px; padding: 8px 16px; font-size: 13px; color: var(--text);
+        }
+        .ok-meta .om b { color: #0077b3; }
+        .ok-actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+        .ok-actions .btn { padding: 13px 34px; font-size: 15px; }
+
+        /* 我的预约列表 */
+        .my-item {
+            border: 1px solid var(--border); border-radius: 14px; padding: 16px 18px; margin-bottom: 12px;
+            display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap; background: var(--white);
+        }
+        .my-item .mi-main { flex: 1; min-width: 200px; }
+        .my-item .mi-top { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+        .my-item .mi-job { font-size: 14px; font-weight: 700; color: var(--text); }
+        .my-item .mi-time { font-size: 13px; color: var(--text-light); margin-top: 4px; }
+        .my-item .mi-meta { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+
+        .phone-note { font-size: 12px; color: var(--text-light); margin-top: 6px; display: flex; align-items: center; gap: 6px; }
+
+        /* 空态 */
+        .empty-state { text-align: center; padding: 40px 20px; color: var(--text-light); }
+        .empty-state .e-icon { font-size: 46px; margin-bottom: 10px; }
+        .empty-state p { font-size: 14px; }
+
+        @media (max-width: 768px) {
+            .iv-hero { padding: 40px 16px 56px; }
+            .iv-hero h1 { font-size: 22px; }
+            .rule-strip .r-grid { grid-template-columns: repeat(2, 1fr); }
+            .iv-body { padding: 0 14px 48px; }
+            .iv-card { padding: 18px; }
+            .slot-grid { grid-template-columns: repeat(2, 1fr); }
+            .code-box { padding: 12px 24px; }
+            .code-box .cb-code { font-size: 26px; letter-spacing: 5px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a class="navbar-brand" href="index.html">
+                <img class="brand-logo" src="images/honess-logo.png" alt="HONESS 泓济环保">
+                <div class="brand-name">校园招聘<small>HONESS Campus Recruitment</small></div>
+            </a>
+            <button class="navbar-toggle" aria-label="菜单" onclick="this.classList.toggle('active');document.getElementById('mainNav').classList.toggle('open')">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="navbar-links" id="mainNav">
+                <a href="index.html">首页</a>
+                <a href="jobs.html">招聘岗位</a>
+                <a href="apply.html">投递简历</a>
+                <a href="mbti.html">性格测试</a>
+                <a href="schedule.html" class="active">AI初试</a>
+                <a href="admin.html" class="admin-btn">HR管理</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero -->
+    <div class="iv-hero">
+        <div class="inner">
+            <div class="iv-badge">🤖 AI 数字人初试 · 自助预约</div>
+            <h1>预约 AI 初试</h1>
+            <p>投递简历后，选择合适的时间参加线上 AI 初试。<br>AI 面试官将与你进行 8-10 分钟的语音交流，全程约 15 分钟。</p>
+        </div>
+    </div>
+
+    <div class="iv-body">
+        <!-- 顶部：候选人身份 / 模式切换 -->
+        <div class="iv-topbar">
+            <div class="who" id="whoBox">
+                <div class="w-avatar" id="whoAvatar">候</div>
+                <div>
+                    <div class="w-name" id="whoName">AI 初试预约</div>
+                    <div class="w-sub" id="whoSub">投递成功后即可自助预约</div>
+                </div>
+            </div>
+            <div class="iv-tabs">
+                <button id="tabBook" class="active" onclick="switchMode('book')">预约时段</button>
+                <button id="tabMy" onclick="switchMode('my')">我的预约</button>
+            </div>
+        </div>
+
+        <!-- 准时评估规则 -->
+        <div class="rule-strip">
+            <div class="r-icon">⏱️</div>
+            <div style="flex:1">
+                <div class="r-title">准时参加 = 量化评估加分项</div>
+                <div class="r-grid">
+                    <div class="r-item"><div class="sc">10 分</div><div class="lb">按时进入 ≤ +15 分钟</div></div>
+                    <div class="r-item"><div class="sc">6 分</div><div class="lb">迟到 15~30 分钟</div></div>
+                    <div class="r-item"><div class="sc">3 分</div><div class="lb">迟到 &gt; 30 分钟</div></div>
+                    <div class="r-item"><div class="sc">0 分</div><div class="lb">缺席（超时未进入）</div></div>
+                </div>
+                <div class="r-note">💡 请提前 5 分钟进入面试页等待；建议在安静、网络稳定的环境使用手机或电脑参加，并佩戴耳机以保证语音清晰。</div>
+            </div>
+        </div>
+
+        <!-- ============ 模式 A：预约 ============ -->
+        <div id="bookMode">
+            <div class="iv-card">
+                <h3><span class="step-pill">STEP 1</span> 填写联系方式</h3>
+                <div class="sub">用于面试入场校验（预约码 + 手机号），请填写投递时使用的手机号</div>
+                <div style="max-width:420px">
+                    <div class="form-group">
+                        <label>手机号 <span class="required">*</span></label>
+                        <input type="tel" id="bookPhone" placeholder="请输入手机号" maxlength="11">
+                        <div class="form-hint">仅用于 AI 初试身份验证，不会公开</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="iv-card">
+                <h3><span class="step-pill">STEP 2</span> 选择面试日期</h3>
+                <div class="sub">工作日固定时段，约满即止</div>
+                <div class="date-row" id="dateRow"><div class="empty-state" style="padding:20px">⏳ 正在加载可预约日期…</div></div>
+            </div>
+
+            <div class="iv-card">
+                <h3><span class="step-pill">STEP 3</span> 选择面试时段</h3>
+                <div class="sub" id="slotSub">请先选择上方日期</div>
+                <div class="slot-grid" id="slotGrid"><div class="empty-state" style="padding:20px;grid-column:1/-1">👈 先选择日期</div></div>
+            </div>
+
+            <!-- 确认条 -->
+            <div class="book-bar" id="bookBar" style="display:none">
+                <div>
+                    <div class="bb-info">已选择：<b id="bbTime">—</b></div>
+                    <div class="bb-hint">确认后系统将生成 6 位预约码，请妥善保存</div>
+                </div>
+                <button class="btn btn-primary" id="bookBtn" onclick="doBook()">确认预约 →</button>
+            </div>
+        </div>
+
+        <!-- 预约成功 -->
+        <div id="bookOk" class="iv-card hidden">
+            <div class="book-ok">
+                <div class="ok-icon">🎉</div>
+                <h2>预约成功！</h2>
+                <div class="ok-sub">AI 初试时段已锁定，请牢记你的预约码</div>
+                <div class="code-box">
+                    <div class="cb-label">预 约 码</div>
+                    <div class="cb-code" id="okCode">------</div>
+                </div>
+                <div class="ok-meta">
+                    <div class="om">🕐 面试时间：<b id="okTime">—</b></div>
+                    <div class="om">👤 候选人：<b id="okName">—</b></div>
+                </div>
+                <div class="ok-actions">
+                    <button class="btn btn-primary" id="goInterviewBtn" onclick="goInterview()">进入 AI 初试 →</button>
+                    <button class="btn btn-secondary" onclick="switchMode('my')">查看我的预约</button>
+                </div>
+                <div class="phone-note" style="justify-content:center;margin-top:14px">🔒 入场需「预约码 + 手机号」双重校验，面试结束即失效</div>
+            </div>
+        </div>
+
+        <!-- ============ 模式 B：我的预约 ============ -->
+        <div id="myMode" class="hidden">
+            <div class="iv-card">
+                <h3>🔍 查询我的预约</h3>
+                <div class="sub">输入投递时填写的姓名与手机号，可查看预约状态、准时记录与初试结果</div>
+                <div class="form-row" style="max-width:640px">
+                    <div class="form-group">
+                        <label>姓名 <span class="required">*</span></label>
+                        <input type="text" id="myName" placeholder="请输入姓名">
+                    </div>
+                    <div class="form-group">
+                        <label>手机号 <span class="required">*</span></label>
+                        <input type="tel" id="myPhone" placeholder="请输入手机号" maxlength="11">
+                    </div>
+                </div>
+                <button class="btn btn-primary" onclick="queryMy()">查询 →</button>
+            </div>
+            <div id="myList"></div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="footer-slogan">净水 · 静心 · 竞未来</div>
+        <p>&copy; <span id="footerYear"></span> 上海泓济环保科技股份有限公司 · 校园招聘</p>
+    </footer>
+
+    <div class="toast" id="toast"></div>
+
+    <!-- Supabase 拦截层必须优先于业务脚本加载 -->
+    <script src="js/supabase-config.js"></script>
+    <script src="js/supabase-api.js"></script>
+
+    <script>
+        (function () {
+            var y = document.getElementById('footerYear'); if (y) y.textContent = new Date().getFullYear();
+        })();
+
+        /* ============ 工具 ============ */
+        function toast(msg) {
+            var t = document.getElementById('toast');
+            t.textContent = msg; t.classList.add('show');
+            clearTimeout(t._h); t._h = setTimeout(function () { t.classList.remove('show'); }, 2600);
+        }
+        function esc(s) {
+            return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+        }
+        function qs(name) {
+            var m = location.search.match(new RegExp('[?&]' + name + '=([^&]+)'));
+            try { return m ? decodeURIComponent(m[1]) : ''; } catch (e) { return m ? m[1] : ''; }
+        }
+        function parseCnTime(iso) {
+            if (!iso) return '';
+            var d = new Date(iso);
+            if (isNaN(d)) return iso;
+            var p = function (n) { return String(n).padStart(2, '0'); };
+            return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + ':' + p(d.getMinutes());
+        }
+        function fmtDate(s) {
+            if (!s) return '';
+            var parts = String(s).split('-');
+            if (parts.length < 3) return s;
+            var week = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+            var d = new Date(+parts[0], +parts[1] - 1, +parts[2]);
+            return (parts[1] + '月' + parts[2] + '日 ' + (week[d.getDay()] || ''));
+        }
+        var STATUS_MAP = {
+            scheduled: ['已预约', 'badge-blue'],
+            in_progress: ['面试中', 'badge-orange'],
+            completed: ['已完成', 'badge-green'],
+            absent: ['缺席', 'badge-red'],
+            cancelled: ['已取消', 'badge-gray']
+        };
+        var PUNCT_MAP = {
+            on_time: ['准时 · 10分', 'badge-green'],
+            late_short: ['迟到15-30min · 6分', 'badge-orange'],
+            late_long: ['迟到>30min · 3分', 'badge-red'],
+            absent: ['缺席 · 0分', 'badge-red'],
+            pending: ['待面试', 'badge-gray']
+        };
+
+        /* ============ 状态 ============ */
+        var state = {
+            candidate_id: qs('candidate_id'),
+            name: qs('name'),
+            job: qs('job'),
+            slots: [],
+            dates: [],
+            curDate: '',
+            curSlot: null,
+            booking: null
+        };
+
+        var whoBox = document.getElementById('whoBox');
+        if (state.candidate_id && state.name) {
+            document.getElementById('whoAvatar').textContent = state.name.charAt(0);
+            document.getElementById('whoName').textContent = state.name;
+            document.getElementById('whoSub').textContent = state.job ? ('意向岗位：' + state.job) : '投递成功，请预约 AI 初试时段';
+        }
+
+        function switchMode(m) {
+            document.getElementById('tabBook').classList.toggle('active', m === 'book');
+            document.getElementById('tabMy').classList.toggle('active', m === 'my');
+            document.getElementById('bookMode').classList.toggle('hidden', m !== 'book');
+            document.getElementById('myMode').classList.toggle('hidden', m !== 'my');
+            if (m === 'book') loadSlots();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        /* ============ 加载时段 ============ */
+        function loadSlots() {
+            var row = document.getElementById('dateRow');
+            row.innerHTML = '<div class="empty-state" style="padding:20px">⏳ 正在加载可预约日期…</div>';
+            fetch('api/interview/slots')
+                .then(function (r) { return r.json(); })
+                .then(function (list) {
+                    state.slots = Array.isArray(list) ? list : [];
+                    // 按日期分组（保留原排序：SQL 已按日期/时间排序）
+                    var map = {};
+                    state.slots.forEach(function (s) {
+                        var k = String(s.date);
+                        if (!map[k]) map[k] = [];
+                        map[k].push(s);
+                    });
+                    state.dates = Object.keys(map);
+                    renderDates(map);
+                    if (state.dates.length) selectDate(state.dates[0]);
+                    else {
+                        row.innerHTML = '<div class="empty-state" style="padding:24px"><div><div class="e-icon">📭</div><p>暂无可预约时段，请稍后再来或联系 HR</p></div></div>';
+                        document.getElementById('slotGrid').innerHTML = '';
+                        document.getElementById('slotSub').textContent = '';
+                    }
+                })
+                .catch(function (e) {
+                    row.innerHTML = '<div class="empty-state" style="padding:24px"><div><div class="e-icon">⚠️</div><p>时段加载失败，请刷新重试</p></div></div>';
+                    console.error(e);
+                });
+        }
+
+        function renderDates(map) {
+            var row = document.getElementById('dateRow');
+            var todayKey = (function () {
+                var n = new Date();
+                var d = new Date(n.getTime() + n.getTimezoneOffset() * 60000 + 8 * 3600000);
+                return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+            })();
+            row.innerHTML = state.dates.map(function (k) {
+                var cnt = map[k].filter(function (s) { return s.remaining > 0; }).length;
+                var isToday = k === todayKey;
+                return '<div class="date-chip' + (state.curDate === k ? ' active' : '') + '" onclick="selectDate(\'' + k + '\')">' +
+                    '<div class="d-week">' + (isToday ? '今天' : fmtDate(k).split(' ')[1] || '') + '</div>' +
+                    '<div class="d-date">' + String(k).slice(5).replace('-', '/') + '</div>' +
+                    '<div class="d-cnt">' + cnt + ' 个时段</div>' +
+                    '</div>';
+            }).join('');
+        }
+
+        function selectDate(k) {
+            state.curDate = k;
+            state.curSlot = null;
+            document.getElementById('bookBar').style.display = 'none';
+            // 刷新日期高亮
+            Array.prototype.forEach.call(document.querySelectorAll('.date-chip'), function (el, i) {
+                el.classList.toggle('active', state.dates[i] === k);
+            });
+            var list = state.slots.filter(function (s) { return String(s.date) === k; });
+            document.getElementById('slotSub').textContent = fmtDate(k) + ' · 共 ' + list.length + ' 个时段';
+            var grid = document.getElementById('slotGrid');
+            grid.innerHTML = list.map(function (s) {
+                var remaining = s.remaining;
+                var closed = s.remaining <= 0;
+                return '<div class="slot-item' + (closed ? ' full' : '') + '" data-id="' + s.id + '" onclick="pickSlot(' + s.id + ')">' +
+                    '<div class="t-main">' + String(s.start).slice(0, 5) + ' - ' + String(s.end).slice(0, 5) + '</div>' +
+                    '<div class="t-left">' + (closed ? '已约满' : '剩余 ' + remaining + '/' + s.capacity + ' 位') + '</div>' +
+                    '</div>';
+            }).join('') || '<div class="empty-state" style="padding:24px;grid-column:1/-1">该日期暂无可约时段</div>';
+        }
+
+        function pickSlot(id) {
+            var s = state.slots.filter(function (x) { return x.id == id; })[0];
+            if (!s || s.remaining <= 0) { toast('该时段已约满'); return; }
+            var phone = document.getElementById('bookPhone').value.trim();
+            if (!/^1\d{10}$/.test(phone)) {
+                toast('请先填写正确的手机号');
+                document.getElementById('bookPhone').focus();
+                return;
+            }
+            state.curSlot = s;
+            Array.prototype.forEach.call(document.querySelectorAll('.slot-item'), function (el) {
+                el.classList.toggle('active', el.dataset.id == id);
+            });
+            document.getElementById('bbTime').textContent = fmtDate(String(s.date)) + ' ' + String(s.start).slice(0, 5) + ' - ' + String(s.end).slice(0, 5);
+            document.getElementById('bookBar').style.display = 'flex';
+        }
+
+        /* ============ 预约 ============ */
+        function doBook() {
+            if (!state.curSlot) { toast('请选择面试时段'); return; }
+            var phone = document.getElementById('bookPhone').value.trim();
+            if (!/^1\d{10}$/.test(phone)) { toast('请填写正确的手机号'); return; }
+            if (!state.candidate_id || !state.name) {
+                toast('缺少候选人信息，请从「投递成功」页进入预约');
+                return;
+            }
+            var btn = document.getElementById('bookBtn');
+            btn.disabled = true; btn.textContent = '预约中…';
+            fetch('api/interview/book', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    candidate_id: state.candidate_id,
+                    slot_id: state.curSlot.id,
+                    name: state.name,
+                    phone: phone,
+                    applied_job: state.job || ''
+                })
+            }).then(function (r) { return r.json(); }).then(function (res) {
+                btn.disabled = false; btn.textContent = '确认预约 →';
+                if (!res.ok) {
+                    if (res.existing) { state.booking = res; showBookOk(res); return; }
+                    toast(res.error || '预约失败，请重试');
+                    if (res.error && /已约满/.test(res.error)) loadSlots();
+                    return;
+                }
+                state.booking = res;
+                showBookOk(res);
+                toast('🎉 预约成功，预约码 ' + res.booking_code);
+            }).catch(function (e) {
+                btn.disabled = false; btn.textContent = '确认预约 →';
+                toast('网络异常，预约失败');
+                console.error(e);
+            });
+        }
+
+        function showBookOk(res) {
+            document.getElementById('bookMode').classList.add('hidden');
+            document.getElementById('bookOk').classList.remove('hidden');
+            document.getElementById('okCode').textContent = res.booking_code || '------';
+            document.getElementById('okTime').textContent = parseCnTime(res.scheduled_at) || '—';
+            document.getElementById('okName').textContent = state.name;
+            document.getElementById('goInterviewBtn').onclick = function () {
+                goInterviewWith(res);
+            };
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function goInterviewWith(res) {
+            var phone = document.getElementById('bookPhone').value.trim();
+            location.href = 'ai-interview.html?code=' + encodeURIComponent(res.booking_code) + '&phone=' + encodeURIComponent(phone);
+        }
+        function goInterview() { /* 由 showBookOk 覆盖 */ }
+
+        /* ============ 我的预约 ============ */
+        function queryMy() {
+            var name = document.getElementById('myName').value.trim();
+            var phone = document.getElementById('myPhone').value.trim();
+            if (!name || !/^1\d{10}$/.test(phone)) { toast('请填写姓名和正确的手机号'); return; }
+            var box = document.getElementById('myList');
+            box.innerHTML = '<div class="empty-state" style="padding:24px"><div><div class="e-icon">⏳</div><p>查询中…</p></div></div>';
+            fetch('api/interview/my?phone=' + encodeURIComponent(phone) + '&name=' + encodeURIComponent(name))
+                .then(function (r) { return r.json(); })
+                .then(function (list) {
+                    list = Array.isArray(list) ? list : [];
+                    if (!list.length) {
+                        box.innerHTML = '<div class="iv-card"><div class="empty-state"><div class="e-icon">📭</div><p>未查询到预约记录<br><span style="font-size:12px;color:var(--text-light)">如已投递简历，请先完成「预约 AI 初试」</span></p></div></div>';
+                        return;
+                    }
+                    box.innerHTML = '<div class="iv-card"><h3>📋 我的预约记录</h3><div class="sub">共 ' + list.length + ' 条 · 迟到缺席将影响量化评估</div>' +
+                        list.map(function (s) {
+                            var st = STATUS_MAP[s.status] || [s.status, 'badge-gray'];
+                            var pt = PUNCT_MAP[s.punctuality_label] || ['—', 'badge-gray'];
+                            var canEnter = (s.status === 'scheduled' || s.status === 'in_progress') && s.status !== 'absent';
+                            return '<div class="my-item">' +
+                                '<div class="mi-main">' +
+                                '<div class="mi-top"><span class="mi-job">' + esc(s.applied_job || 'AI 初试') + '</span>' +
+                                '<span class="badge ' + st[1] + '">' + st[0] + '</span></div>' +
+                                '<div class="mi-time">🕐 ' + esc(parseCnTime(s.scheduled_at)) + '</div>' +
+                                '<div style="margin-top:6px"><span class="badge ' + pt[1] + '">⏱ ' + pt[0] + '</span>' +
+                                (s.overall_score != null ? '<span class="badge badge-purple" style="margin-left:6px">AI 初试分：' + s.overall_score + '</span>' : '') + '</div>' +
+                                '</div>' +
+                                '<div class="mi-meta">' +
+                                (canEnter ? '<a class="btn btn-primary btn-sm" href="ai-interview.html?code=' + encodeURIComponent(s.booking_code) + '&phone=' + encodeURIComponent(phone) + '">进入面试 →</a>' : '') +
+                                '</div>' +
+                                '</div>';
+                        }).join('') + '</div>';
+                })
+                .catch(function (e) {
+                    box.innerHTML = '<div class="iv-card"><div class="empty-state"><div class="e-icon">⚠️</div><p>查询失败，请重试</p></div></div>';
+                    console.error(e);
+                });
+        }
+
+        /* 初始化 */
+        document.getElementById('bookPhone').addEventListener('input', function () {
+            if (state.curSlot && /^1\d{10}$/.test(this.value.trim())) {
+                document.getElementById('bbTime').textContent = fmtDate(String(state.curSlot.date)) + ' ' + String(state.curSlot.start).slice(0, 5) + ' - ' + String(state.curSlot.end).slice(0, 5);
+            }
+        });
+        if (state.candidate_id && state.name) {
+            loadSlots();
+        } else {
+            switchMode('my');
+        }
+    </script>
+</body>
+</html>

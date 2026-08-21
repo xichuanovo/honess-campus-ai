@@ -1,0 +1,15 @@
+# Node
+node_modules/
+npm-debug.log*
+
+# 本地临时脚本（静态服务器/测试用）
+*.tmp.js
+_server.tmp.js
+
+# 工具目录
+.workbuddy/
+screenshots/
+
+# 系统文件
+.DS_Store
+Thumbs.db

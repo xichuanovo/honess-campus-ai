@@ -1,0 +1,654 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>职业性格测试 | 泓济环保校招</title>
+    <link rel="stylesheet" href="css/main.css">
+    <script src="js/mbti-data.js"></script>
+    <style>
+        .mbti-container { max-width: 720px; margin: 0 auto; padding: 24px 16px 60px; }
+
+        .welcome-card { text-align: center; }
+        .welcome-card .emoji { font-size: 64px; margin-bottom: 20px; display: block; }
+        .welcome-card h2 { font-size: 22px; font-weight: 700; margin-bottom: 16px; }
+        .welcome-card .desc { font-size: 15px; color: var(--text-light); margin-bottom: 24px; line-height: 1.8; }
+        .info-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; margin-bottom: 32px; }
+        .info-item { background: var(--secondary); border-radius: var(--radius-sm); padding: 16px 8px; text-align: center; }
+        .info-item .num { font-size: 24px; font-weight: 700; color: var(--primary); }
+        .info-item .label { font-size: 12px; color: var(--text-light); margin-top: 4px; }
+
+        .category-grid { display: grid; grid-template-columns: 1fr; gap: 14px; margin: 24px 0; }
+        .category-card { display: flex; align-items: center; gap: 16px; padding: 20px; background: var(--secondary); border-radius: var(--radius-sm); border: 2px solid transparent; cursor: pointer; transition: all 0.25s; }
+        .category-card:hover { border-color: var(--primary-light); background: #e0f0e8; transform: translateX(4px); }
+        .category-card.selected { border-color: var(--primary); background: #e0f0e8; }
+        .category-card .cat-icon { font-size: 36px; flex-shrink: 0; }
+        .category-card .cat-info { text-align: left; }
+        .category-card .cat-name { font-size: 17px; font-weight: 700; color: var(--primary-dark); }
+        .category-card .cat-desc { font-size: 13px; color: var(--text-light); margin-top: 2px; }
+
+        .progress-bar-wrap { margin-bottom: 24px; }
+        .progress-info { display: flex; justify-content: space-between; margin-bottom: 8px; font-size: 13px; color: var(--text-light); }
+        .progress-bar { height: 8px; background: var(--secondary); border-radius: 4px; overflow: hidden; }
+        .progress-fill { height: 100%; background: linear-gradient(90deg, var(--primary), var(--primary-light)); border-radius: 4px; transition: width 0.4s; }
+
+        .question-card .q-index { font-size: 14px; color: var(--primary); font-weight: 600; margin-bottom: 12px; }
+        .question-card .q-text { font-size: 20px; font-weight: 700; margin-bottom: 24px; line-height: 1.5; }
+
+        .statement-box { padding: 14px 18px; border-radius: var(--radius-sm); margin-bottom: 8px; font-size: 15px; line-height: 1.7; display: flex; gap: 10px; align-items: flex-start; }
+        .statement-box.side-a { background: #fff3e0; border-left: 4px solid #ff9f43; }
+        .statement-box.side-b { background: #e8f5ef; border-left: 4px solid #1a7f5a; }
+        .statement-box .stmt-label { font-weight: 700; font-size: 13px; flex-shrink: 0; padding: 2px 8px; border-radius: 6px; }
+        .statement-box.side-a .stmt-label { background: #ffe0b2; color: #e65100; }
+        .statement-box.side-b .stmt-label { background: #c8e6c9; color: #1b5e20; }
+        .statement-box .stmt-text { flex: 1; }
+
+        .scale-wrap { margin-top: 28px; display: flex; justify-content: space-between; align-items: flex-start; position: relative; padding: 0 4px; }
+        .scale-line { position: absolute; top: 20px; left: 12%; right: 12%; height: 3px; background: linear-gradient(90deg, #ff9f43 0%, #ffcc80 35%, #cfd8dc 50%, #a5d6a7 65%, #1a7f5a 100%); border-radius: 2px; opacity: 0.35; z-index: 0; }
+        .scale-item { flex: 1; display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: all 0.2s; position: relative; z-index: 1; padding: 0 2px; }
+        .scale-dot { width: 42px; height: 42px; border-radius: 50%; border: 3px solid #e0e0e0; background: var(--white); transition: all 0.2s; margin-bottom: 10px; }
+        .scale-item:hover .scale-dot { transform: scale(1.1); border-color: #bdbdbd; }
+        .scale-dot.d-a2 { border-color: #ff9f43; }
+        .scale-dot.d-a1 { border-color: #ffb74d; }
+        .scale-dot.d-n { border-color: #b0bec5; }
+        .scale-dot.d-b1 { border-color: #66bb6a; }
+        .scale-dot.d-b2 { border-color: #1a7f5a; }
+        .scale-item.selected .scale-dot { transform: scale(1.15); box-shadow: 0 2px 12px rgba(0,0,0,0.12); }
+        .scale-item.selected .d-a2 { background: #ff9f43; border-color: #ff9f43; }
+        .scale-item.selected .d-a1 { background: #ffb74d; border-color: #ffb74d; }
+        .scale-item.selected .d-n { background: #b0bec5; border-color: #90a4ae; }
+        .scale-item.selected .d-b1 { background: #66bb6a; border-color: #66bb6a; }
+        .scale-item.selected .d-b2 { background: #1a7f5a; border-color: #1a7f5a; }
+        .scale-label { font-size: 12px; color: var(--text-light); text-align: center; line-height: 1.4; }
+        .scale-item.selected .scale-label { color: var(--text); font-weight: 700; }
+
+        .question-nav { display: flex; justify-content: space-between; align-items: center; margin-top: 28px; gap: 12px; }
+        .question-nav .btn { padding: 12px 28px; font-size: 14px; }
+
+        .result-card { text-align: center; }
+        .result-type-badge { display: inline-block; padding: 6px 16px; background: var(--secondary); border-radius: 20px; font-size: 13px; color: var(--primary); font-weight: 600; margin-bottom: 16px; }
+        .result-emoji { font-size: 72px; margin-bottom: 12px; display: block; }
+        .result-type { font-size: 40px; font-weight: 800; color: var(--primary-dark); margin-bottom: 8px; letter-spacing: 2px; }
+        .result-name { font-size: 20px; font-weight: 600; margin-bottom: 20px; }
+        .result-tagline { font-size: 15px; color: var(--text-light); margin-bottom: 28px; font-style: italic; }
+
+        .dimension-bars { margin: 28px 0; }
+        .dim-bar { margin-bottom: 18px; }
+        .dim-bar-header { display: flex; justify-content: space-between; margin-bottom: 6px; font-size: 13px; }
+        .dim-bar-header .dim-label { font-weight: 600; }
+        .dim-bar-header .dim-value { color: var(--primary); font-weight: 700; }
+        .dim-bar-track { height: 10px; background: var(--secondary); border-radius: 5px; overflow: hidden; }
+        .dim-bar-fill { height: 100%; border-radius: 5px; transition: width 0.8s; }
+        .dim-bar-fill.ei { background: linear-gradient(90deg, #f0932b, #ff9f43); }
+        .dim-bar-fill.sn { background: linear-gradient(90deg, #6c5ce7, #a29bfe); }
+        .dim-bar-fill.tf { background: linear-gradient(90deg, #0984e3, #74b9ff); }
+        .dim-bar-fill.jp { background: linear-gradient(90deg, #00b894, #55efc4); }
+        .dim-bar-fill.at { background: linear-gradient(90deg, #e17055, #fab1a0); }
+        .dim-bar-labels { display: flex; justify-content: space-between; margin-top: 4px; font-size: 11px; color: var(--text-light); }
+
+        .result-section { text-align: left; margin: 24px 0; padding: 20px; background: var(--secondary); border-radius: var(--radius-sm); }
+        .result-section h3 { font-size: 16px; font-weight: 700; margin-bottom: 12px; color: var(--primary-dark); }
+        .result-section p { font-size: 14px; line-height: 1.8; }
+        .career-tags { display: flex; flex-wrap: wrap; gap: 8px; }
+        .career-tag { padding: 6px 14px; background: var(--white); border-radius: 20px; font-size: 13px; color: var(--primary-dark); font-weight: 500; border: 1px solid var(--border); }
+
+        .fit-badge { display: inline-block; padding: 4px 12px; border-radius: 12px; font-size: 13px; font-weight: 700; }
+        .fit-badge.best { background: #e8f5e9; color: #2e7d32; }
+        .fit-badge.good { background: #e3f2fd; color: #1565c0; }
+        .fit-badge.general { background: #f5f5f5; color: #636e72; }
+        .fit-badge.watch { background: #fff3e0; color: #e65100; }
+
+        .result-actions { display: flex; gap: 12px; justify-content: center; margin-top: 32px; flex-wrap: wrap; }
+
+        .disclaimer-box { margin: 20px 0; padding: 16px; background: #fff8e1; border-radius: var(--radius-sm); border-left: 4px solid var(--accent); }
+        .disclaimer-box p { font-size: 12px; color: #e65100; line-height: 1.7; }
+
+        /* 投递验证门禁 */
+        .gate-screen { text-align: center; padding: 20px 8px; }
+        .gate-screen .gate-icon { font-size: 64px; margin-bottom: 18px; display: block; }
+        .gate-screen h2 { font-size: 22px; font-weight: 700; margin-bottom: 14px; color: var(--primary-dark); }
+        .gate-screen .gate-desc { font-size: 15px; color: var(--text-light); line-height: 1.8; margin-bottom: 24px; max-width: 480px; margin-left: auto; margin-right: auto; }
+        .gate-screen .gate-steps { display: flex; gap: 16px; justify-content: center; flex-wrap: wrap; margin-bottom: 28px; }
+        .gate-screen .gate-step { display: flex; align-items: center; gap: 8px; padding: 10px 18px; background: var(--secondary); border-radius: 24px; font-size: 14px; color: var(--primary-dark); font-weight: 600; }
+        .gate-screen .gate-step .step-num { width: 24px; height: 24px; background: var(--primary); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; flex-shrink: 0; }
+        .gate-verify-box { max-width: 380px; margin: 0 auto 24px; padding: 18px; background: var(--secondary); border-radius: var(--radius-sm); }
+        .gate-verify-box label { display: block; font-size: 13px; color: var(--text-light); margin-bottom: 8px; }
+        .gate-verify-box input { width: 100%; padding: 10px 14px; border: 1.5px solid var(--border); border-radius: var(--radius-sm); font-size: 15px; text-align: center; letter-spacing: 2px; }
+        .gate-verify-box input:focus { outline: none; border-color: var(--primary); }
+        .gate-verify-box .verify-hint { font-size: 12px; color: var(--text-light); margin-top: 8px; }
+        .gate-verify-box .verify-err { font-size: 12px; color: #e53935; margin-top: 8px; display: none; }
+        .gate-loading { display: inline-flex; align-items: center; gap: 8px; font-size: 14px; color: var(--text-light); }
+
+        /* 结果页防白嫖水印 — 使用真实DOM元素，截图/导出PDF均可保留 */
+        .result-watermark {
+            position: relative; overflow: hidden; border-radius: var(--radius);
+        }
+        .result-watermark > .wm-content { position: relative; z-index: 1; }
+        .wm-pattern {
+            position: absolute; inset: 0; z-index: 5; pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='100' viewBox='0 0 180 100'%3E%3Ctext x='10' y='40' font-size='14' font-family='sans-serif' font-weight='700' fill='rgba(0,90,50,0.12)' transform='rotate(-30 90 50)'%3E泓济环保招聘专用%3C/text%3E%3Ctext x='50' y='90' font-size='14' font-family='sans-serif' font-weight='700' fill='rgba(0,90,50,0.12)' transform='rotate(-30 90 50)'%3E泓济环保招聘专用%3C/text%3E%3C/svg%3E");
+            background-repeat: repeat;
+        }
+        .watermark-stamp {
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%) rotate(-18deg);
+            z-index: 6; pointer-events: none; white-space: nowrap;
+            font-size: clamp(28px, 6vw, 48px); font-weight: 800; letter-spacing: 4px;
+            color: rgba(0,90,50,0.15); border: 4px solid rgba(0,90,50,0.15);
+            padding: 8px 28px; border-radius: 12px;
+        }
+        /* 截图/PDF导出按钮 */
+        .export-btn { display: inline-flex; align-items: center; gap: 6px; }
+        .export-btn:disabled { opacity: 0.6; cursor: wait; }
+
+
+        @media (max-width: 480px) {
+            .mbti-container { padding: 16px 12px 40px; }
+            .card { padding: 24px 20px; }
+            .question-card .q-text { font-size: 17px; }
+            .result-type { font-size: 32px; }
+            .scale-dot { width: 36px; height: 36px; border-width: 2px; }
+            .scale-label { font-size: 11px; }
+        }
+    </style>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="navbar-inner">
+            <a class="navbar-brand" href="index.html">
+                <img class="brand-logo" src="images/honess-logo.png" alt="HONESS 泓济环保">
+                <div class="brand-name">校园招聘<small>HONESS Campus Recruitment</small></div>
+            </a>
+            <button class="navbar-toggle" aria-label="菜单" onclick="this.classList.toggle('active');document.getElementById('mainNav').classList.toggle('open')">
+                <span></span><span></span><span></span>
+            </button>
+            <div class="navbar-links" id="mainNav">
+                <a href="index.html">首页</a>
+                <a href="jobs.html">招聘岗位</a>
+                <a href="apply.html">投递简历</a>
+                <a href="mbti.html" class="active">性格测试</a>
+                <a href="schedule.html">AI初试</a>
+                <a href="admin.html" class="admin-btn">HR管理</a>
+            </div>
+        </div>
+    </nav>
+
+    <div class="mbti-container">
+        <!-- 投递验证门禁 -->
+        <div id="gateScreen" class="card gate-screen fade-in">
+            <span class="gate-icon">🔐</span>
+            <h2>请先投递简历后参加测试</h2>
+            <p class="gate-desc">
+                职业性格测试面向<strong>已投递简历</strong>的候选人开放。<br>
+                请先完成简历投递，获取投递编号后即可解锁测试。
+            </p>
+            <div class="gate-steps">
+                <div class="gate-step"><span class="step-num">1</span> 投递简历</div>
+                <div class="gate-step"><span class="step-num">2</span> 获取编号</div>
+                <div class="gate-step"><span class="step-num">3</span> 解锁测试</div>
+            </div>
+            <div class="gate-verify-box">
+                <label>已有投递编号？输入后解锁</label>
+                <input type="text" id="gateInput" placeholder="HJ-000000" maxlength="12" onkeydown="if(event.key==='Enter')verifyByInput()">
+                <div class="verify-err" id="verifyErr">编号无效，请检查后重试</div>
+            </div>
+            <div style="display:flex; gap:12px; justify-content:center; flex-wrap:wrap;">
+                <button class="btn btn-primary" onclick="verifyByInput()">验证编号解锁 →</button>
+                <a href="apply.html" class="btn btn-outline">📝 去投递简历</a>
+            </div>
+        </div>
+
+        <!-- Welcome -->
+        <div id="welcomeScreen" class="card welcome-card fade-in hidden">
+            <span class="emoji">🧠</span>
+            <h2>欢迎参加职业性格测试</h2>
+            <p class="desc">
+                本测试通过5个维度帮助你了解自己的职业性格特征，<br>
+                为岗位匹配和团队协作提供参考。
+            </p>
+            <div class="info-grid">
+                <div class="info-item"><div class="num">40</div><div class="label">道题目</div></div>
+                <div class="info-item"><div class="num">10-15</div><div class="label">分钟完成</div></div>
+                <div class="info-item"><div class="num">32</div><div class="label">种风格</div></div>
+            </div>
+            <div style="text-align:left; margin-bottom: 24px; padding: 16px; background: var(--secondary); border-radius: var(--radius-sm);">
+                <p style="font-size: 13px; color: var(--text-light); line-height: 1.8;">
+                    <strong style="color: var(--primary-dark);">测试说明：</strong><br>
+                    本测试包含5个维度：认知方向（E/I）、信息感知（S/N）、决策判断（T/F）、处事方式（J/P）、抗压风格（A/T）。<br>
+                    每题有两个描述，请根据你的真实倾向选择更符合的一项。没有对错之分，请凭第一直觉作答。
+                </p>
+            </div>
+            <button class="btn btn-primary" onclick="goToCategory()">开始测试 →</button>
+        </div>
+
+        <!-- Category Selection -->
+        <div id="categoryScreen" class="card hidden">
+            <h2 style="font-size: 20px; font-weight: 700; margin-bottom: 8px; text-align: center;">请选择你应聘/感兴趣的岗位方向</h2>
+            <p style="font-size: 14px; color: var(--text-light); text-align: center; margin-bottom: 8px;">这将帮助我们为你提供更有针对性的岗位匹配建议</p>
+            <div class="category-grid" id="categoryGrid"></div>
+            <div style="text-align: center; margin-top: 20px; display: flex; gap: 12px; justify-content: center;">
+                <button class="btn btn-outline" onclick="backToWelcome()">← 返回</button>
+                <button class="btn btn-primary" id="startTestBtn" onclick="startTest()" disabled>开始答题 →</button>
+            </div>
+        </div>
+
+        <!-- Question -->
+        <div id="questionScreen" class="card hidden">
+            <div class="progress-bar-wrap">
+                <div class="progress-info"><span id="progressText">第 1 / 40 题</span><span id="progressPercent">3%</span></div>
+                <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+            </div>
+            <div class="question-card">
+                <div class="q-index" id="qIndex">维度</div>
+                <div class="q-text" id="qText">问题</div>
+                <div id="statementsContainer"></div>
+                <div class="scale-wrap" id="choicesContainer"></div>
+            </div>
+            <div class="question-nav">
+                <button class="btn btn-outline" id="prevBtn" onclick="prevQuestion()">← 上一题</button>
+                <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()" disabled>下一题 →</button>
+            </div>
+        </div>
+
+        <!-- Result -->
+        <div id="resultScreen" class="hidden"></div>
+
+        <div class="footer" style="text-align: center; padding: 20px; font-size: 12px; color: var(--text-light);">
+            <p>&copy; <span id="footerYear"></span> 上海泓济环保 · 职业性格测试系统</p>
+            <p>本测试仅供职业参考使用，不作为唯一录用依据</p>
+        </div>
+    </div>
+
+    <div class="loading-overlay" id="loadingOverlay" style="display:none;">
+        <div class="spinner"></div>
+        <p id="loadingText">正在提交测试结果...</p>
+    </div>
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // 自动填充当前年份
+        (function() { var y = document.getElementById('footerYear'); if (y) y.textContent = new Date().getFullYear(); })();
+
+        const urlParams = new URLSearchParams(location.search);
+        let candidateId = urlParams.get('candidate_id');
+        let verified = false;
+
+        let currentQuestion = 0;
+        let answers = new Array(questions.length).fill(null);
+        let scores = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0, A: 0, Tu: 0 };
+        let currentType = '';
+        let currentIdentity = '';
+        let selectedCategory = '';
+
+        // ===== 投递验证门禁 =====
+        // 页面加载即验证：URL 带 candidate_id 则向后端确认该候选人真实存在
+        (async function initGate() {
+            if (candidateId) {
+                const ok = await verifyCandidate(candidateId);
+                if (ok) { unlockTest(); return; }
+            }
+            // 未验证通过，显示门禁页（默认已显示）
+        })();
+
+        async function verifyCandidate(id) {
+            try {
+                const r = await fetch('/api/candidates/' + id + 'verify');
+                if (!r.ok) return false;
+                const data = await r.json();
+                return data.exists === true;
+            } catch { return false; }
+        }
+
+        function unlockTest() {
+            verified = true;
+            document.getElementById('gateScreen').classList.add('hidden');
+            const ws = document.getElementById('welcomeScreen');
+            ws.classList.remove('hidden');
+            ws.classList.add('fade-in');
+        }
+
+        async function verifyByInput() {
+            const input = document.getElementById('gateInput').value.trim().toUpperCase();
+            const errBox = document.getElementById('verifyErr');
+            errBox.style.display = 'none';
+            if (!input) return;
+            // 支持 HJ-000123 或纯数字 123
+            let id = input;
+            if (input.startsWith('HJ-')) id = input.replace(/^HJ-0*/, '') || '0';
+            id = id.replace(/^0+(?=\d)/, '');
+            if (!/^\d+$/.test(id)) { errBox.style.display = 'block'; return; }
+            const btn = event.target.closest('button');
+            const orig = btn.innerHTML;
+            btn.innerHTML = '<span class="gate-loading"><span class="spinner" style="width:18px;height:18px;border-width:2px;"></span> 验证中...</span>';
+            btn.disabled = true;
+            const ok = await verifyCandidate(id);
+            btn.disabled = false;
+            btn.innerHTML = orig;
+            if (ok) {
+                candidateId = id;
+                // 同步 URL，便于后续提交结果时取用
+                try { history.replaceState(null, '', location.pathname + '?candidate_id=' + id); } catch {}
+                unlockTest();
+            } else {
+                errBox.style.display = 'block';
+            }
+        }
+
+        function goToCategory() {
+            if (!verified) return; // 未投递验证不允许进入测试
+            document.getElementById('welcomeScreen').classList.add('hidden');
+            const catScreen = document.getElementById('categoryScreen');
+            catScreen.classList.remove('hidden');
+            catScreen.classList.add('fade-in');
+            renderCategories();
+        }
+
+        function renderCategories() {
+            const grid = document.getElementById('categoryGrid');
+            grid.innerHTML = '';
+            Object.entries(jobCategories).forEach(([key, cat]) => {
+                const card = document.createElement('div');
+                card.className = 'category-card';
+                card.onclick = () => selectCategory(key);
+                card.innerHTML = `<div class="cat-icon">${cat.icon}</div><div class="cat-info"><div class="cat-name">${cat.name}</div><div class="cat-desc">${cat.desc}</div></div>`;
+                grid.appendChild(card);
+            });
+        }
+
+        function selectCategory(key) {
+            selectedCategory = key;
+            document.querySelectorAll('.category-card').forEach(c => c.classList.remove('selected'));
+            event.currentTarget.classList.add('selected');
+            document.getElementById('startTestBtn').disabled = false;
+        }
+
+        function backToWelcome() {
+            document.getElementById('categoryScreen').classList.add('hidden');
+            document.getElementById('welcomeScreen').classList.remove('hidden');
+            document.getElementById('welcomeScreen').classList.add('fade-in');
+            selectedCategory = '';
+        }
+
+        function startTest() {
+            document.getElementById('categoryScreen').classList.add('hidden');
+            document.getElementById('questionScreen').classList.remove('hidden');
+            document.getElementById('questionScreen').classList.add('fade-in');
+            renderQuestion();
+        }
+
+        function renderQuestion() {
+            const q = questions[currentQuestion];
+            const total = questions.length;
+            const progress = ((currentQuestion + 1) / total) * 100;
+            document.getElementById('progressFill').style.width = progress + '%';
+            document.getElementById('progressText').textContent = `第 ${currentQuestion + 1} / ${total} 题`;
+            document.getElementById('progressPercent').textContent = Math.round(progress) + '%';
+            document.getElementById('qIndex').textContent = `维度：${q.label}`;
+            const qText = (q.catQ && q.catQ[selectedCategory]) ? q.catQ[selectedCategory] : q.q;
+            document.getElementById('qText').textContent = qText;
+
+            document.getElementById('statementsContainer').innerHTML = `
+                <div class="statement-box side-a"><span class="stmt-label">A</span><span class="stmt-text">${q.aText}</span></div>
+                <div class="statement-box side-b"><span class="stmt-label">B</span><span class="stmt-text">${q.bText}</span></div>
+            `;
+
+            const choicesContainer = document.getElementById('choicesContainer');
+            choicesContainer.innerHTML = '<div class="scale-line"></div>';
+            const choices = [
+                { side: 'a', weight: 2, label: '非常符合A', dotCls: 'd-a2' },
+                { side: 'a', weight: 1, label: '比较符合A', dotCls: 'd-a1' },
+                { side: 'n', weight: 0, label: '中立', dotCls: 'd-n' },
+                { side: 'b', weight: 1, label: '比较符合B', dotCls: 'd-b1' },
+                { side: 'b', weight: 2, label: '非常符合B', dotCls: 'd-b2' },
+            ];
+            const labelTexts = ['非常符合A', '比较符合A', '中立', '比较符合B', '非常符合B'];
+            choices.forEach((ch, idx) => {
+                const isSelected = answers[currentQuestion] && answers[currentQuestion].side === ch.side && answers[currentQuestion].weight === ch.weight;
+                const wrap = document.createElement('div');
+                wrap.className = 'scale-item' + (isSelected ? ' selected' : '');
+                wrap.innerHTML = `<div class="scale-dot ${ch.dotCls}"></div><div class="scale-label">${labelTexts[idx]}</div>`;
+                wrap.onclick = () => selectOption(ch.side, ch.weight);
+                choicesContainer.appendChild(wrap);
+            });
+
+            document.getElementById('prevBtn').disabled = currentQuestion === 0;
+            const nextBtn = document.getElementById('nextBtn');
+            nextBtn.disabled = answers[currentQuestion] === null;
+            nextBtn.textContent = currentQuestion === total - 1 ? '查看结果 🎯' : '下一题 →';
+        }
+
+        function selectOption(side, weight) {
+            answers[currentQuestion] = { side, weight };
+            renderQuestion();
+        }
+
+        function nextQuestion() {
+            if (answers[currentQuestion] === null) return;
+            if (currentQuestion < questions.length - 1) {
+                currentQuestion++;
+                renderQuestion();
+            } else {
+                calculateResult();
+            }
+        }
+
+        function prevQuestion() {
+            if (currentQuestion > 0) { currentQuestion--; renderQuestion(); }
+        }
+
+        function calculateResult() {
+            scores = { E: 0, I: 0, S: 0, N: 0, T: 0, F: 0, J: 0, P: 0, A: 0, Tu: 0 };
+            questions.forEach((q, i) => {
+                const ans = answers[i];
+                if (!ans) return;
+                if (ans.side === 'n') { scores[q.a] += 0.5; scores[q.b] += 0.5; }
+                else { const target = ans.side === 'a' ? q.a : q.b; scores[target] += ans.weight; }
+            });
+            currentType = (scores.E >= scores.I ? 'E' : 'I') + (scores.S >= scores.N ? 'S' : 'N') + (scores.T >= scores.F ? 'T' : 'F') + (scores.J >= scores.P ? 'J' : 'P');
+            currentIdentity = scores.A >= scores.Tu ? 'A' : 'T';
+            renderResult();
+        }
+
+        function renderResult() {
+            const pt = personalityTypes[currentType];
+            const fullType = currentType + '-' + currentIdentity;
+            const fit = typeCategoryFit[currentType] || {};
+            const catFit = selectedCategory ? (fit[selectedCategory] || 'general') : 'general';
+            const fitInfo = fitLabels[catFit] || fitLabels.general;
+
+            const dimData = [
+                { name: '认知方向', left: '外向(E)', right: '内向(I)', leftVal: scores.E, rightVal: scores.I, cls: 'ei' },
+                { name: '信息感知', left: '务实(S)', right: '创新(N)', leftVal: scores.S, rightVal: scores.N, cls: 'sn' },
+                { name: '决策判断', left: '理性(T)', right: '价值(F)', leftVal: scores.T, rightVal: scores.F, cls: 'tf' },
+                { name: '处事方式', left: '计划(J)', right: '灵活(P)', leftVal: scores.J, rightVal: scores.P, cls: 'jp' },
+                { name: '抗压风格', left: '稳健(A)', right: '精进(T)', leftVal: scores.A, rightVal: scores.Tu, cls: 'at' },
+            ];
+
+            const dimBarsHtml = dimData.map(d => {
+                const total = d.leftVal + d.rightVal || 1;
+                const leftPct = Math.round(d.leftVal / total * 100);
+                const rightPct = Math.round(d.rightVal / total * 100);
+                const dominant = d.leftVal >= d.rightVal ? d.left : d.right;
+                const dominantPct = Math.max(leftPct, rightPct);
+                return `<div class="dim-bar">
+                    <div class="dim-bar-header"><span class="dim-label">${d.name}</span><span class="dim-value">${dominant} · ${dominantPct}%</span></div>
+                    <div class="dim-bar-track"><div class="dim-bar-fill ${d.cls}" style="width:${leftPct}%"></div></div>
+                    <div class="dim-bar-labels"><span>${d.left} ${leftPct}%</span><span>${rightPct}% ${d.right}</span></div>
+                </div>`;
+            }).join('');
+
+            const careerTagsHtml = pt.careers.map(c => `<span class="career-tag">${c}</span>`).join('');
+
+            let mbtiResult = '';
+            if (candidateId) {
+                // 提交到后端
+                document.getElementById('loadingOverlay').style.display = 'flex';
+                fetch(`/api/candidates/${candidateId}/mbti`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        mbti_type: currentType,
+                        mbti_scores: { ...scores, identity: currentIdentity, fullType },
+                        preferred_category: selectedCategory
+                    })
+                }).then(r => r.json()).then(data => {
+                    document.getElementById('loadingOverlay').style.display = 'none';
+                    if (data.recommendations && data.recommendations.length > 0) {
+                        showToast('测试结果已保存，已为你匹配推荐岗位');
+                    } else {
+                        showToast('测试结果已保存');
+                    }
+                }).catch(() => {
+                    document.getElementById('loadingOverlay').style.display = 'none';
+                    showToast('测试结果保存失败，但不影响你的测试报告');
+                });
+            }
+
+            const screen = document.getElementById('resultScreen');
+            screen.classList.remove('hidden');
+            screen.classList.add('card', 'result-card', 'fade-in');
+            screen.innerHTML = `
+                <div class="result-watermark" id="resultWatermark">
+                <div class="wm-pattern"></div>
+                <div class="watermark-stamp">泓济环保招聘专用</div>
+                <div class="wm-content">
+                <div class="result-type-badge">你的职业性格类型</div>
+                <span class="result-emoji">${pt.emoji}</span>
+                <div class="result-type">${currentType}-${currentIdentity}</div>
+                <div class="result-name">${pt.name}</div>
+                <div class="result-tagline">"${pt.tagline}"</div>
+
+                <div class="dimension-bars">${dimBarsHtml}</div>
+
+                <div class="result-section">
+                    <h3>💪 核心优势</h3>
+                    <p>${pt.strengths}</p>
+                </div>
+
+                <div class="result-section">
+                    <h3>🎯 适合的职业方向</h3>
+                    <div class="career-tags">${careerTagsHtml}</div>
+                </div>
+
+                ${selectedCategory ? `<div class="result-section">
+                    <h3>📋 岗位方向匹配度</h3>
+                    <p>你选择的岗位方向：<strong>${jobCategories[selectedCategory].name}</strong></p>
+                    <div style="margin-top:12px;">
+                        <span class="fit-badge ${fitInfo.cls}">${fitInfo.label}</span>
+                        <span style="margin-left:12px; font-size:14px; color:var(--text-light);">${categoryDirections[selectedCategory][catFit]}</span>
+                    </div>
+                </div>` : ''}
+
+                <div class="disclaimer-box">
+                    <p>⚠️ 本测试结果仅供职业发展参考，不作为录用的唯一依据。MBTI类型不代表能力高低，每种性格类型都有其独特的价值。</p>
+                </div>
+
+                <div class="result-actions">
+                    <button class="btn btn-primary export-btn" id="btnScreenshot" onclick="exportScreenshot()">📸 截图保存</button>
+                    <button class="btn btn-secondary export-btn" id="btnPdf" onclick="exportPDF()">📄 保存PDF</button>
+                    ${candidateId ? '' : '<a href="apply.html" class="btn btn-primary">投递简历 →</a>'}
+                    <a href="jobs.html" class="btn btn-secondary">查看匹配岗位</a>
+                    <a href="index.html" class="btn btn-outline">返回首页</a>
+                </div>
+                </div>
+                </div>
+            `;
+            window.scrollTo(0, 0);
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.textContent = msg;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
+    </script>
+    <!-- 截图 & PDF 导出库 -->
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+    <script>
+        // ===== 一键截图 & 保存PDF =====
+
+        function captureWatermark() {
+            const el = document.getElementById('resultWatermark');
+            if (!el) return null;
+            return html2canvas(el, {
+                scale: 2,
+                useCORS: true,
+                backgroundColor: '#ffffff',
+                logging: false,
+            });
+        }
+
+        function setExportLoading(loading) {
+            ['btnScreenshot', 'btnPdf'].forEach(id => {
+                const btn = document.getElementById(id);
+                if (btn) btn.disabled = loading;
+            });
+        }
+
+        async function exportScreenshot() {
+            setExportLoading(true);
+            showToast('正在生成截图...');
+            try {
+                const canvas = await captureWatermark();
+                if (!canvas) { showToast('未找到结果区域'); return; }
+                const link = document.createElement('a');
+                const ts = new Date().toISOString().slice(0, 10);
+                link.download = `MBTI测试结果_${ts}.png`;
+                link.href = canvas.toDataURL('image/png');
+                link.click();
+                showToast('截图已保存到下载文件夹');
+            } catch (e) {
+                console.error('Screenshot error:', e);
+                showToast('截图失败，请重试');
+            } finally {
+                setExportLoading(false);
+            }
+        }
+
+        async function exportPDF() {
+            setExportLoading(true);
+            showToast('正在生成PDF...');
+            try {
+                const canvas = await captureWatermark();
+                if (!canvas) { showToast('未找到结果区域'); return; }
+
+                const imgData = canvas.toDataURL('image/png');
+                const { jsPDF } = window.jspdf;
+                const pdf = new jsPDF({ orientation: 'portrait', unit: 'mm', format: 'a4' });
+
+                const pageW = 210, pageH = 297;
+                const margin = 10;
+                const availW = pageW - margin * 2;
+                const availH = pageH - margin * 2;
+
+                // 按比例缩放，优先适配宽度
+                const imgRatio = canvas.width / canvas.height;
+                let renderW = availW;
+                let renderH = availW / imgRatio;
+
+                // 如果高度超出页面，按高度缩放并分页
+                if (renderH > availH) {
+                    renderH = availH;
+                    renderW = availH * imgRatio;
+                }
+
+                const x = (pageW - renderW) / 2;
+                const y = margin;
+                pdf.addImage(imgData, 'PNG', x, y, renderW, renderH);
+                const ts = new Date().toISOString().slice(0, 10);
+                pdf.save(`MBTI测试结果_${ts}.pdf`);
+                showToast('PDF已保存到下载文件夹');
+            } catch (e) {
+                console.error('PDF error:', e);
+                showToast('PDF生成失败，请重试');
+            } finally {
+                setExportLoading(false);
+            }
+        }
+    </script>
+    <script src="js/supabase-config.js"></script>
+    <script src="js/supabase-api.js"></script>
+    <script src="js/api-fallback.js"></script>
+</body>
+</html>
